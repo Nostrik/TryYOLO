@@ -1,16 +1,10 @@
-# This is a sample Python script.
+from ultralytics import YOLO
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+model = YOLO("yolov8n.pt")  # загрузите предварительно обученную модель YOLOv8n
 
+model.train(data="coco128.yaml")  # обучите модель
+model.val()  # оцените производительность модели на наборе проверки
+model.predict(source="https://ultralytics.com/images/bus.jpg")  # предсказать по изображению
+model.export(format="onnx")  # экспортируйте модель в формат ONNX
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
-
-
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+# https://habr.com/ru/post/710016/
