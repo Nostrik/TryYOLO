@@ -8,7 +8,8 @@ model = YOLO("yolov8n.yaml")
 
 
 def main():
-    results = model.train(data="coco128.yaml", epochs=3)
+    #  196: Cigar/Cigarette
+    results = model.train(data="Objects365.yaml", epochs=1)
 
 
 if __name__ == '__main__':
