@@ -20,12 +20,16 @@ img_list = [img0, img1, img3, img4, img5, img6, img7, img8, img9]
 def main():
     #  196: Cigar/Cigarette
 #    results = model.train(data="coco128.yaml", epochs=3000)
-    for img in img_list:
-        find = model(img)
+#     for img in img_list:
+#         find = model(img)
+    res = model('videos/videoplayback.mp4')
 
 
 if __name__ == '__main__':
+    start_time = time.time()
     logger.info(f"started main at {time.strftime('%X')}")
     main()
+    end_time = time.time()
     logger.info(f"finished main at {time.strftime('%X')}")
+    logger.info(f"time spent is {end_time - start_time}")
 
