@@ -19,7 +19,7 @@ img_list = [img0, img1, img3, img4, img5, img6, img7, img8, img9]
 
 def main():
     #  196: Cigar/Cigarette
-    # results = model.train(data="coco128.yaml", epochs=1)
+#    results = model.train(data="coco128.yaml", epochs=3000)
     for img in img_list:
         find = model(img)
 
