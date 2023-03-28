@@ -4,7 +4,7 @@ from ultralytics import YOLO
 from loguru import logger
 import time
 
-# model = YOLO("runs/detect/train11/weights/best.pt")
+model = YOLO("runs/detect/train13/weights/best.pt")
 # model = YOLO("yolov8n.pt")
 my_model = YOLO("yolov8n.yaml")
 img1 = 'images/bb0684.jpg'
@@ -20,11 +20,11 @@ img_list = [img0, img1, img3, img4, img5, img6, img7, img8, img9]
 
 
 def main():
-    results = my_model.train(data="my_dataset_cigarette.yaml", epochs=300)
+#    results = my_model.train(data="my_dataset_cigarette.yaml", epochs=300)
 #    results = model.train(data="coco128.yaml", epochs=3000)
 #     for img in img_list:
 #         find = model(img)
-#     res = model('videos/videoplayback.mp4')
+    res = model('videos/videoplayback.mp4', save=True)
 
 
 if __name__ == '__main__':
