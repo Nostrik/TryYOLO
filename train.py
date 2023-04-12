@@ -11,7 +11,7 @@ def main():
         # data = None           # path to data file, i.e. coco128.yaml
         # ,model = "./cigar/train3/weights/best.pt" # path to model file, i.e. yolov8n.pt, yolov8n.yaml
         # ,model = "yolov8n.pt" # path to model file, i.e. yolov8n.pt, yolov8n.yaml
-        ,epochs = 2000         # number of epochs to train for
+        ,epochs = 1         # number of epochs to train for
         ,patience = 0         # epochs to wait for no observable improvement for early stopping of training
         ,batch = -1            # number of images per batch (-1 for AutoBatch)
         # ,imgsz = 640           # size of input images as integer or w,h

@@ -1,4 +1,7 @@
 from ultralytics import YOLO
+from loguru import logger
+import time
+
 
 def main():
     # model = YOLO()
@@ -9,7 +12,7 @@ def main():
         # data = None           # path to data file, i.e. coco128.yaml
         # ,model = "yolov8x.pt" # path to model file, i.e. yolov8n.pt, yolov8n.yaml
         # ,model = "yolov8n.pt" # path to model file, i.e. yolov8n.pt, yolov8n.yaml
-        ,epochs = 2000         # number of epochs to train for
+        ,epochs = 1         # number of epochs to train for
         ,patience = 20         # epochs to wait for no observable improvement for early stopping of training
         ,batch = -1            # number of images per batch (-1 for AutoBatch)
         # ,imgsz = 640           # size of input images as integer or w,h
@@ -53,4 +56,10 @@ def main():
     )
     
 if __name__ == '__main__':
+    start_time = time.time()
+    logger.info(f"started main at {time.strftime('%X')}")
     main()
+    end_time = time.time()
+    logger.info(f"finished main at {time.strftime('%X')}")
+    logger.info(f"time spent is {end_time - start_time}")
+    
