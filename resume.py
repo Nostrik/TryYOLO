@@ -8,7 +8,7 @@ def main():
     model = YOLO("TryYOLO/cigar/train/weights/last.pt")
 
     model.train(
-        data = "data.yaml"
+        data = "TryYOLO/data.yaml"
         # data = None           # path to data file, i.e. coco128.yaml
         # ,model = "yolov8x.pt" # path to model file, i.e. yolov8n.pt, yolov8n.yaml
         # ,model = "yolov8n.pt" # path to model file, i.e. yolov8n.pt, yolov8n.yaml
