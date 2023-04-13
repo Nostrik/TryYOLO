@@ -5,7 +5,7 @@ import time
 
 def main():
     # model = YOLO()
-    model = YOLO("./cigar/train/weights/last.pt")
+    model = YOLO("TryYOLO/cigar/train/weights/last.pt")
 
     model.train(
         data = "data.yaml"
