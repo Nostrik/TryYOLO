@@ -1,5 +1,5 @@
 
-path: /home/nostrik/Downloads/from-Nik github branch/TryYOLO
+path: /content/TryYOLO
 train: train/images
 val: valid/images
 test: test/images
