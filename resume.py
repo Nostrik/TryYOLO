@@ -5,10 +5,10 @@ import time
 
 def main():
     # model = YOLO()
-    model = YOLO("trained_models/from-nik/last.pt")
+    model = YOLO("cigarette/train/weights/last.pt")
 
     model.train(
-        data = "cigarette-data.yaml"
+        data = "cigarette_data.yaml"
         # data = None           # path to data file, i.e. coco128.yaml
         # ,model = "yolov8x.pt" # path to model file, i.e. yolov8n.pt, yolov8n.yaml
         # ,model = "yolov8n.pt" # path to model file, i.e. yolov8n.pt, yolov8n.yaml
@@ -63,3 +63,4 @@ if __name__ == '__main__':
     end_time = time.time()
     logger.info(f"finished main at {time.strftime('%X')}")
     logger.info(f"time spent is {end_time - start_time}")
+    
