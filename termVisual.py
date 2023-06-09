@@ -26,4 +26,4 @@ class TerminalVisualiser:
     def print_all(self):
         for proc in self.proccess_list:
             self.print_to_terminal(proc)
-            self.cursor_down            
+            self.cursor_down()    

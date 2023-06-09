@@ -205,7 +205,7 @@ def worker_parser(target_video, weight_file, save_csv, save_video, verbose):
 
     print(Style.RESET_ALL)
 
-    print(f'Обработка {(os.path.basename(weight_file)).replace(".pt","")} окончена за: {end_time - start_time:.0f} сек')
+    # print(f'Обработка {(os.path.basename(weight_file)).replace(".pt","")} окончена за: {end_time - start_time:.0f} сек')
     return output_listing
 
 def run_detection(target_video, weight_file, save_csv, save_video, verbose):

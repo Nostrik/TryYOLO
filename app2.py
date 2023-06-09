@@ -7,6 +7,7 @@ from typing import Any
 from multiprocessing import Process
 import sys
 from fndBack import black_frame_detect
+from termVisual import TerminalVisualiser
 
 
 disclaimer = "| Данное программное обеспечение предназначено для поиска и обнаружения объектов на различных видеоматериалах.|\n|" + \
@@ -173,6 +174,7 @@ def pre_detection(params: dict) -> None:
                     p = Process(target=run_detection, args=(params['target_video'], params['weight_files'][int(i_weight_choice) - 1], params['save_csv'], params['save_video'], params['verbose']))
                     proc_list.append(p)
                     p.start()
+                    visualiser = TerminalVisualiser(proc_cnt=len(proc_list), proc_lst=proc_list)
 
                     if params['verbose']:
                         verbose_function(results)
