@@ -5,6 +5,7 @@ from frame2timecode import f2t
 from frame2timecode import video_duration
 from datetime import datetime
 
+
 def test_cuda():
     result = subprocess.run(['ffmpeg', '-decoders'], capture_output=True)
     output = result.stdout.decode()

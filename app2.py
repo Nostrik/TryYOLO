@@ -159,25 +159,21 @@ def interactive_ui(args: Any) -> dict:
     }
 
 
-def start_detection(proc_cnt: int, **kwargs):
-    if proc_cnt == 1:
-        results = run_detection(kwargs['target_video'], kwargs['weight_file'], kwargs['save_csv'], kwargs['save_video'], kwargs['verbose'])
-    else:
-        for i_proc in kwargs['weight_files_choice']:
-            pass
-
 def pre_detection(params: dict) -> None:
 
-    procces_cnt = len(params['weight_files_choice'])
+    proc_list = []
     try:
         if len(params['weight_files_choice']) == 0 and len(params['video_files_choice']) == 0:
-        #    results = run_detection(params['target_video'], params['weight_file'], params['save_csv'], params['save_video'], params['verbose'])
-            start_detection(procces_cnt, params)
+           results = run_detection(params['target_video'], params['weight_file'], params['save_csv'], params['save_video'], params['verbose'])
+            # start_detection(procces_cnt, params)
         else:
             for i_weight_choice in params['weight_files_choice']:
                 if params['weight_files'][int(i_weight_choice) - 1] != params['black_frame_path']:
                     # results = run_detection(params['target_video'], params['weight_files'][int(i_weight_choice) - 1], params['save_csv'], params['save_video'], params['verbose'])
-                    start_detection(procces_cnt, params)
+                    p = Process(target=run_detection, args=(params['target_video'], params['weight_files'][int(i_weight_choice) - 1], params['save_csv'], params['save_video'], params['verbose']))
+                    proc_list.append(p)
+                    p.start()
+
                     if params['verbose']:
                         verbose_function(results)
                     if params['save_csv']:

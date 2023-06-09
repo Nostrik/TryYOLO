@@ -165,7 +165,7 @@ def worker_parser(target_video, weight_file, save_csv, save_video, verbose):
     model=torch.load(weight_file, map_location=torch.device('cpu'))
     classes = {y: x for x, y in model['model'].names.items()}
 
-    print(f"Мы ищем следующие объекты: {', '.join(list(classes.keys()))}")
+    # print(f"Мы ищем следующие объекты: {', '.join(list(classes.keys()))}")
 
     process = subprocess.Popen(PopenPars, stderr=subprocess.PIPE)
     
@@ -192,7 +192,11 @@ def worker_parser(target_video, weight_file, save_csv, save_video, verbose):
                     else:
                         remaining_time_str = f'{remaining_time/3600:.0f} часов'
 
-                    output = f"Текущий прогресс: {'{:.2f}'.format(100 * curpos / int(res['total_amount']))}% " + \
+                    # output = f"Текущий прогресс: {'{:.2f}'.format(100 * curpos / int(res['total_amount']))}% " + \
+                    #             f"{res['current_pos']}/{res['total_amount']} | " + \
+                    #             f"Осталось: ~{remaining_time_str} | " + \
+                    #             f"Кадр распознан за {res['processing_time']} {res['detected_objs']}                          "
+                    output = f"{', '.join(list(classes.keys()))} | Текущий прогресс: {'{:.2f}'.format(100 * curpos / int(res['total_amount']))}% " + \
                                 f"{res['current_pos']}/{res['total_amount']} | " + \
                                 f"Осталось: ~{remaining_time_str} | " + \
                                 f"Кадр распознан за {res['processing_time']} {res['detected_objs']}                          "
