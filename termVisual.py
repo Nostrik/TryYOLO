@@ -1,29 +1,28 @@
 import sys
+import time as tm
 from dataclasses import dataclass
+from multiprocessing import Process, Lock
+
+cursor_up = lambda lines: '\x1b[{0}A'.format(lines)
+cursor_down = lambda lines: '\x1b[{0}B'.format(lines)
 
 
-class TerminalVisualiser:
+def multiPrint():
+    sys.stdout.close()
+
+
+def worker(p_number):
+    for i in range(30):
+        print(f'proccess: {p_number} pid: {None} | => {i} <=', end='\r')
+        tm.sleep(0.5)
+
+
+if __name__ == "__main__":
+    p_lst = []
+    lock = Lock()
     
-    proccess_counter: int = 0
-    proccess_list: list = []
-
-    def __init__(self, proc_cnt: int, proc_lst: list) -> None:
-        self.proccess_counter = proc_cnt
-        self.proccess_list = proc_lst
-
-    def cursor_up():
-        sys.stdout.write('\x1b[1A')
-        sys.stdout.flush()
-
-    def cursor_down():
-        sys.stdout.write('\n')
-        sys.stdout.flush()
-
-    def print_to_terminal(line: str):
-        sys.stdout.write(line)
-
-
-    def print_all(self):
-        for proc in self.proccess_list:
-            self.print_to_terminal(proc)
-            self.cursor_down()    
+    for i in range(3):
+        p = Process(target=worker, args=(lock, i))
+        p_lst.append(p)
+        p.start()
+    
