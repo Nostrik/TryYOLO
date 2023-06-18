@@ -1,32 +1,20 @@
-from __future__ import print_function
-import colorama
-from time import sleep
-
-colorama.init()
-
-# # ESC [ n A       # move cursor n lines up
-# # ESC [ n B       # move cursor n lines down
-
-cursor_up = lambda lines: '\x1b[{0}A'.format(lines)
-cursor_down = lambda lines: '\x1b[{0}B'.format(lines)
+from multiprocessing import Process, Barrier, Manager
 
 
-print("meow :)")
-print("meow-meow :)")
-print("meow-meow-meow :)")
-lines_up = 3
-print(cursor_up(lines_up), end='')
-sleep(1)
-print("woof", " " * 10)
-sleep(1)
-lines_down = 1
-sleep(1)
-print(cursor_down(lines_down), end='')
-sleep(1)
-print("woof-woof-woof", " " * 10)
-sleep(1)
-lines_up = 2
-sleep(1)
-print(cursor_up(lines_up), end='')
-print("woof-woof", " " * 10)
-sleep(1)
+def f(m_dict, m_array):
+    m_dict["name"] = "test"
+    m_dict["version"] = "1.0"
+    m_array.append(1)
+    m_array.append(2)
+
+
+if __name__ == "__main__":
+    with Manager() as m:
+        d = m.dict()
+        l = m.list()
+        pr = Process(target=f, args=(d, l))
+        pr.start()
+        pr.join()
+
+        print("dict: ", d)
+        print("list: ", l)
