@@ -170,6 +170,8 @@ def pre_detection(params: dict) -> None:
             for i_weight_choice in params['weight_files_choice']:
                 if params['weight_files'][int(i_weight_choice) - 1] != params['black_frame_path']:
                     # results = run_detection(params['target_video'], params['weight_files'][int(i_weight_choice) - 1], params['save_csv'], params['save_video'], params['verbose'])
+
+                    
                     p = Process(target=run_detection, args=(params['target_video'], params['weight_files'][int(i_weight_choice) - 1], params['save_csv'], params['save_video'], params['verbose']))
                     proc_list.append(p)
                     p.start()
