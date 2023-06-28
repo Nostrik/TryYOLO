@@ -1,88 +1,64 @@
-import sys
 import time as tm
-import random
-from dataclasses import dataclass
-from multiprocessing import Process, Lock
-from loguru import logger
-
-cursor_up = lambda lines: '\x1b[{0}A'.format(lines)
-cursor_down = lambda lines: '\x1b[{0}B'.format(lines)
-
-COLLECTOR = {"0": 0, "1": 0, "2": 0}
+from multiprocessing import Process, Manager, Lock, Queue
+from pprint import pprint
 
 
-class Container(object):
-
-    def __init__(self) -> None:
-        self.proccess0 = 0
-        self.proccess1 = 0
-        self.proccess2 = 0
-
-    def set_value(self, number_proccess, value):
-        if number_proccess == 0:
-            self.proccess1 = value
-        elif number_proccess == 1:
-            self.proccess2 = value
-        elif number_proccess == 2:
-            self.proccess3 = value
-
-    def get_value(self, number_proccess):
-        if number_proccess == 0:
-            return self.proccess1
-        elif number_proccess == 1:
-            return self.proccess2
-        elif number_proccess == 2:
-            return self.proccess3
-        
-    
-    def log(self):
-        logger.info(f"self.proccess0 = {self.proccess0} | self.proccess1 = {self.proccess1} | self.proccess2 = {self.proccess2}")
+def worker(process_number, info_container, queue):
+    process_lock = Lock()
+    for i in range(20):
+        info_dict = {"process": process_number, "value": i}
+        with process_lock:
+            info_container[process_number] = info_dict
+        queue.put((process_number, i))
+        tm.sleep(0.1)
 
 
-def writer(container):
+def printer(queue, quantity_processes, final_results, info_container):
     cursor_up = lambda lines: '\x1b[{0}A'.format(lines)
-    cursor_down = lambda lines: '\x1b[{0}B'.format(lines)
-    
-    cnt = 20
-    while cnt != 0:
-        tm.sleep(0.5)
-        # container.log()
-        print(f'proccess: {1} pid: {None} | => {container.get_value(1)} <=')
-        print(f'proccess: {2} pid: {None} | => {container.get_value(2)} <=')
-        print(f'proccess: {3} pid: {None} | => {container.get_value(3)} <=')
-        print(cursor_up(4) + '\r')
-        cnt -= 1
-
-
-def worker_writer(p_number, lock, c_object, value):
-    with lock:
-        c_object.set_value(p_number, value)
-        c_object.log()
-    return c_object
-
-
-def worker(p_number, lock, c_object):
-    for i in range(30):
-        # print(f'proccess: {p_number} pid: {None} | => {i} <=', end='\r')
-        worker_writer(p_number, lock, c_object, i)
-        tm.sleep(0.2)
-    return c_object
+    value = 0
+    while True:
+        output = ""
+        for i in range(quantity_processes):
+            try:
+                process_number, value = queue.get(block=False)
+                output += f"Process {process_number}: {value}    "
+                output += '\n'
+                final_results[process_number] = value
+            except:
+                output += " " * (len(f"Process {i}: 0    ")-1)
+        results = [info_dict["value"] for info_dict in info_container]
+        print(output, end='\r')
+        if value > 18:
+            break
+        tm.sleep(0.3)
+        print(cursor_up(quantity_processes + 1))
 
 
 if __name__ == "__main__":
-    lock = Lock()
-    proc_list = []
-    # w = Process(target=writer, args=(container_obj, ))
-    # w.start()
-    container = Container()
-    for i in range(2): 
-        p = Process(target=worker, args=(i, lock, container))
-        proc_list.append(p)
-        p.start()
-
-    for p in proc_list:
-        p.join()
-    print("-" * 80)
-    container.log()
-
-    
+    quantity_processes = 10  # Задаем количество процессов
+    with Manager() as m:
+        process_list = []
+        info_container = m.list()
+        final_results = m.list([0] * quantity_processes)
+        for i in range(quantity_processes):
+            info_dict = m.dict()
+            info_dict["process"] = i
+            info_dict["value"] = 0
+            info_container.append(info_dict)
+        results_container = m.list([0] * quantity_processes)
+        lock = Lock()
+        queue = Queue()
+        print('\n' * quantity_processes)
+        p_printer = Process(target=printer, args=(queue, quantity_processes, final_results, info_container))
+        p_printer.start()
+        for i in range(quantity_processes):
+            p = Process(target=worker, args=(i, info_container, queue))
+            process_list.append(p)
+            p.start()
+        for p in process_list:
+            p.join()
+        queue.put(None)
+        p_printer.join()
+        
+        for info_dict in info_container:
+            pprint(info_dict)
