@@ -151,7 +151,7 @@ async def giveMeLine(cur_frame, detected_objs, classes, res):
     for i in temp_list:
         res_buffer[i]=[cur_frame]
 
-def worker_parser(target_video, weight_file, save_csv, save_video, verbose):
+def worker_parser(target_video, weight_file, save_csv, save_video, verbose, queue, quantity_processes, final_results, info_container):
     global frames_dict
     global output_listing
 
@@ -204,13 +204,22 @@ def worker_parser(target_video, weight_file, save_csv, save_video, verbose):
     # print(f'Обработка {(os.path.basename(weight_file)).replace(".pt","")} окончена за: {end_time - start_time:.0f} сек')
     return output_listing
 
-def run_detection(target_video, weight_file, save_csv, save_video, verbose):
+def run_detection(*args):
     global frames_dict
-    thread = threading.Thread(target=async_f2t, args=(target_video,))
+    thread = threading.Thread(target=async_f2t, args=(args[0],))
     thread.start()
 
-    result = worker_parser(target_video, weight_file, save_csv, save_video, verbose)
+    result = worker_parser(*args)
 
     thread.join()
 
     return result
+
+
+def terminal_printer(queue, quantity_processes, final_results, info_container):
+    cursor_up = lambda lines: '\x1b[{0}A'.format(lines)
+    value = 0
+    while True:
+        output = ""
+        for i in range(quantity_processes):
+            pass

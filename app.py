@@ -7,6 +7,7 @@ from typing import Any
 from multiprocessing import Process, Manager, Lock, Queue
 import sys
 from fndBack import black_frame_detect
+from loguru import logger
 
 
 disclaimer = "| Данное программное обеспечение предназначено для поиска и обнаружения объектов на различных видеоматериалах.|\n|" + \
@@ -85,6 +86,7 @@ def non_interactive_ui(args: Any) -> dict:
         "weight_files": weight_files,
         "weight_files_choice": weight_files_choice,
         "video_files": video_files,
+        'video_files_choice': 0,
     }
 
 
@@ -156,15 +158,19 @@ def interactive_ui(args: Any) -> dict:
         "weight_files": weight_files,
         "weight_files_choice": weight_files_choice,
         "video_files": video_files,
+        'video_files_choice': 0,
     }
 
 
+@logger.catch
 def pre_detection(params: dict) -> None:
 
 
     try:
-        if len(params['weight_files_choice']) == 0 and len(params['video_files_choice']) == 0:
-           results = run_detection(params['target_video'], params['weight_file'], params['save_csv'], params['save_video'], params['verbose'])
+        if len(params['weight_files_choice']) == 0:
+           results = run_detection(params['target_video'], params['weight_file'], params['save_csv'], params['save_video'], params['verbose'],
+                                   None, 1, None, None,                         
+                                   )
             # start_detection(procces_cnt, params)
         else:
             # for i_weight_choice in params['weight_files_choice']:
@@ -208,7 +214,7 @@ def pre_detection(params: dict) -> None:
 
                     p = Process(target=run_detection, args=(
                         params['target_video'], params['weight_files'][int(i_weight_choice) - 1], params['save_csv'], params['save_video'], params['verbose'],
-
+                        queue, quantity_processes, final_results, info_container,
                         ))
                     proc_list.append(p)
                     p.start()
@@ -219,7 +225,7 @@ def pre_detection(params: dict) -> None:
             for info_dict in info_container:
                 print(info_dict)
 
-    except KeyError as er:
+    except FileNotFoundError as er:
         print("Неверно указаны файлы весов!")
         print(er)
         exit(0) 
@@ -232,7 +238,7 @@ if __name__ == "__main__":
         description='Консольный интерфейс детектирования проблем на выбранном видеофрагменте',
     )
 
-    parser.add_argument('-i', '--input', dest='input', required=False, help='Интерактивный режим ввода', default=True, action=argparse.BooleanOptionalAction)
+    parser.add_argument('-i', '--input', dest='input', required=False, help='Интерактивный режим ввода', default=False, action=argparse.BooleanOptionalAction)
     parser.add_argument('-c', '--save_csv', dest='save_csv', action='store_true', required=False, help='Сохранение результатов в csv файл')
     parser.add_argument('-s', '--save_video', dest='save_video', action='store_true', required=False, help='Сохранение видео с результатами работы')
     parser.add_argument('-t', '--target_video', metavar='target_video', required=False, help='Путь к видео для обработки')
