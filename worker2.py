@@ -4,10 +4,13 @@ import time
 import torch
 import asyncio
 import re
-from colorama import init, Fore, Style
 import threading
 import queue
+from colorama import init, Fore, Style
+from loguru import logger
+from multiprocessing import Lock
 
+# logger.add('logs/logs.log', level='DEBUG', format="{time} {level} {message}")
 some_sortof_res=dict()
 
 res_buffer=dict()
@@ -51,6 +54,7 @@ def rainbow_print(*args, **kwargs):
 
     print(Style.RESET_ALL, **kwargs)
 
+@logger.catch
 def async_f2t(video_path):
     global frames_queue
 
@@ -151,7 +155,7 @@ async def giveMeLine(cur_frame, detected_objs, classes, res):
     for i in temp_list:
         res_buffer[i]=[cur_frame]
 
-def worker_parser(target_video, weight_file, save_csv, save_video, verbose, queue, quantity_processes, final_results, info_container):
+def worker_parser(target_video, weight_file, save_csv, save_video, verbose, queue=None, quantity_processes=None, final_results=None, info_container=None, process_number=0):
     global frames_dict
     global output_listing
 
@@ -161,15 +165,23 @@ def worker_parser(target_video, weight_file, save_csv, save_video, verbose, queu
                 (['save_conf=True'] if save_csv else []) + \
                 (['save_crop=True'] if save_video else []) + \
                 (['save=True'] if save_video else [])
-
+    logger.debug(f"weight file - [{weight_file}]")
+    logger.debug(f"video file - [{target_video}]")
     model=torch.load(weight_file, map_location=torch.device('cpu'))
     classes = {y: x for x, y in model['model'].names.items()}
 
     # print(f"Мы ищем следующие объекты: {', '.join(list(classes.keys()))}")
-
     process = subprocess.Popen(PopenPars, stderr=subprocess.PIPE)
-    
     start_time = time.time()
+
+    process_lock = Lock()
+    info_dict = {
+        "object": classes.keys(),
+        "progress": "",
+        "remaining_time": "",
+        "recognized_for": "",
+        "process_completed": False,
+    }
     while True:
             output = process.stderr.readline().decode('utf-8')
 
@@ -196,6 +208,17 @@ def worker_parser(target_video, weight_file, save_csv, save_video, verbose, queu
                                 f"{res['current_pos']}/{res['total_amount']} | " + \
                                 f"Осталось: ~{remaining_time_str} | " + \
                                 f"Кадр распознан за {res['processing_time']} {res['detected_objs']}                          "
+                    
+                    info_dict['progress'] = '{:.2f}'.format(100 * curpos / int(res['total_amount']))
+                    info_dict['remaining_time'] = remaining_time_str
+                    info_dict['recognized_for'] = res['processing_time']
+                    # if float(info_dict['progress']) < 100:
+                    #     info_dict['process_completed'] = False
+                    # elif float(info_dict['progress']) == 100:
+                    #     info_dict['process_completed'] = True
+                    with process_lock:
+                        info_container[process_number] = info_dict
+                    queue.put((process_number, info_container))
                     print(output, end='\r', flush=True)
                     asyncio.run(giveMeLine(curpos, res['detected_objs'], classes, res))
 

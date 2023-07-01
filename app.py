@@ -60,7 +60,6 @@ def non_interactive_ui(args: Any) -> dict:
     weight_files_choice = []
     video_files = {}
 
-    print_disclaimer()
     if args.weights:
         weight_file = args.weights
     if args.target_video:
@@ -168,8 +167,7 @@ def pre_detection(params: dict) -> None:
 
     try:
         if len(params['weight_files_choice']) == 0:
-           results = run_detection(params['target_video'], params['weight_file'], params['save_csv'], params['save_video'], params['verbose'],
-                                   None, 1, None, None,                         
+           results = run_detection(params['target_video'], params['weight_file'], params['save_csv'], params['save_video'], params['verbose']                      
                                    )
             # start_detection(procces_cnt, params)
         else:
@@ -210,20 +208,24 @@ def pre_detection(params: dict) -> None:
                 # p_printer = Process(target=printer, args=(queue, quantity_processes, final_results, info_container))
                 # p_printer.start()
                 # for i in range(quantity_processes):
-                for i_weight_choice in params['weight_files_choice']:
+                # for i_weight_choice in params['weight_files_choice']:
+                for i_process, i_weight_choice in enumerate(params['weight_files_choice']):
 
                     p = Process(target=run_detection, args=(
                         params['target_video'], params['weight_files'][int(i_weight_choice) - 1], params['save_csv'], params['save_video'], params['verbose'],
-                        queue, quantity_processes, final_results, info_container,
+                        queue, quantity_processes, final_results, info_container, i_process,
                         ))
                     proc_list.append(p)
                     p.start()
                 for p in proc_list:
                     p.join()
                 queue.put(None)
-                # p_printer.join()       
-            for info_dict in info_container:
-                print(info_dict)
+                # p_printer.join()
+            try:       
+                for info_dict in info_container:
+                    print(info_dict)
+            except BrokenPipeError as er:
+                print(f"Соединение было закрыто: {er}")  
 
     except FileNotFoundError as er:
         print("Неверно указаны файлы весов!")

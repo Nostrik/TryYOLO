@@ -9,8 +9,8 @@ def worker(process_number, info_container, queue):
         info_dict = {"process": process_number, "value": i}
         with process_lock:
             info_container[process_number] = info_dict
-        queue.put((process_number, i))
-        tm.sleep(0.1)
+        queue.put((process_number, info_container))
+        tm.sleep(0.3)
 
 
 def printer(queue, quantity_processes, final_results, info_container):
@@ -21,21 +21,23 @@ def printer(queue, quantity_processes, final_results, info_container):
         for i in range(quantity_processes):
             try:
                 process_number, value = queue.get(block=False)
-                output += f"Process {process_number}: {value}    "
+                output += f"{value}    "
                 output += '\n'
                 final_results[process_number] = value
             except:
                 output += " " * (len(f"Process {i}: 0    ")-1)
         results = [info_dict["value"] for info_dict in info_container]
         print(output, end='\r')
-        if value > 18:
+        # if value > 18:
+        #     break
+        if info_container[0]['value'] > 18:
             break
         tm.sleep(0.3)
         print(cursor_up(quantity_processes + 1))
 
 
 if __name__ == "__main__":
-    quantity_processes = 10  # Задаем количество процессов
+    quantity_processes = 4  # Задаем количество процессов
     with Manager() as m:
         process_list = []
         info_container = m.list()
@@ -60,5 +62,5 @@ if __name__ == "__main__":
         queue.put(None)
         p_printer.join()
         
-        for info_dict in info_container:
-            pprint(info_dict)
+        # for info_dict in info_container:
+        #     pprint(info_dict)
