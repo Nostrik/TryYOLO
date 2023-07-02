@@ -1,7 +1,7 @@
 import argparse
 import os
 import csv
-from worker2 import run_detection
+from worker2 import run_detection, terminal_printer
 from datetime import datetime
 from typing import Any
 from multiprocessing import Process, Manager, Lock, Queue
@@ -198,8 +198,15 @@ def pre_detection(params: dict) -> None:
                 # for i_weight_choice in params['weight_files_choice']:
                 for i in range(quantity_processes):
                     info_dict = process_manager.dict()
-                    info_dict["process"] = i
-                    info_dict["value"] = 0
+                    # info_dict["process"] = i
+                    # info_dict["value"] = 0
+                    info_dict = {
+                        "object": None,
+                        "progress": "",
+                        "remaining_time": "",
+                        "recognized_for": "",
+                        "process_completed": False,
+                    }
                     info_container.append(info_dict)
                 results_container = process_manager.list([0] * quantity_processes)
                 lock = Lock()
@@ -209,8 +216,9 @@ def pre_detection(params: dict) -> None:
                 # p_printer.start()
                 # for i in range(quantity_processes):
                 # for i_weight_choice in params['weight_files_choice']:
+                p_printer = Process(target=terminal_printer, args=(queue, quantity_processes, info_container))
+                p_printer.start()
                 for i_process, i_weight_choice in enumerate(params['weight_files_choice']):
-
                     p = Process(target=run_detection, args=(
                         params['target_video'], params['weight_files'][int(i_weight_choice) - 1], params['save_csv'], params['save_video'], params['verbose'],
                         queue, quantity_processes, final_results, info_container, i_process,
@@ -220,7 +228,7 @@ def pre_detection(params: dict) -> None:
                 for p in proc_list:
                     p.join()
                 queue.put(None)
-                # p_printer.join()
+                p_printer.join()
             try:       
                 for info_dict in info_container:
                     print(info_dict)

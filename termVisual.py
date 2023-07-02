@@ -13,7 +13,7 @@ def worker(process_number, info_container, queue):
         tm.sleep(0.3)
 
 
-def printer(queue, quantity_processes, final_results, info_container):
+def printer(queue, quantity_processes, info_container):
     cursor_up = lambda lines: '\x1b[{0}A'.format(lines)
     value = 0
     while True:
@@ -21,12 +21,12 @@ def printer(queue, quantity_processes, final_results, info_container):
         for i in range(quantity_processes):
             try:
                 process_number, value = queue.get(block=False)
-                output += f"{value}    "
+                output += f"Process {process_number}, value {value[process_number]['value']}    "
                 output += '\n'
-                final_results[process_number] = value
+                # final_results[process_number] = value
             except:
-                output += " " * (len(f"Process {i}: 0    ")-1)
-        results = [info_dict["value"] for info_dict in info_container]
+                output += " " * (len(f"Process {i}: 0    ") - 1)
+        # results = [info_dict["value"] for info_dict in info_container]
         print(output, end='\r')
         # if value > 18:
         #     break
@@ -41,7 +41,6 @@ if __name__ == "__main__":
     with Manager() as m:
         process_list = []
         info_container = m.list()
-        final_results = m.list([0] * quantity_processes)
         for i in range(quantity_processes):
             info_dict = m.dict()
             info_dict["process"] = i
@@ -51,7 +50,7 @@ if __name__ == "__main__":
         lock = Lock()
         queue = Queue()
         print('\n' * quantity_processes)
-        p_printer = Process(target=printer, args=(queue, quantity_processes, final_results, info_container))
+        p_printer = Process(target=printer, args=(queue, quantity_processes, info_container))
         p_printer.start()
         for i in range(quantity_processes):
             p = Process(target=worker, args=(i, info_container, queue))

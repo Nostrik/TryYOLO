@@ -165,8 +165,8 @@ def worker_parser(target_video, weight_file, save_csv, save_video, verbose, queu
                 (['save_conf=True'] if save_csv else []) + \
                 (['save_crop=True'] if save_video else []) + \
                 (['save=True'] if save_video else [])
-    logger.debug(f"weight file - [{weight_file}]")
-    logger.debug(f"video file - [{target_video}]")
+    # logger.debug(f"weight file - [{weight_file}]")
+    # logger.debug(f"video file - [{target_video}]")
     model=torch.load(weight_file, map_location=torch.device('cpu'))
     classes = {y: x for x, y in model['model'].names.items()}
 
@@ -182,6 +182,7 @@ def worker_parser(target_video, weight_file, save_csv, save_video, verbose, queu
         "recognized_for": "",
         "process_completed": False,
     }
+    info_container
     while True:
             output = process.stderr.readline().decode('utf-8')
 
@@ -212,14 +213,14 @@ def worker_parser(target_video, weight_file, save_csv, save_video, verbose, queu
                     info_dict['progress'] = '{:.2f}'.format(100 * curpos / int(res['total_amount']))
                     info_dict['remaining_time'] = remaining_time_str
                     info_dict['recognized_for'] = res['processing_time']
-                    # if float(info_dict['progress']) < 100:
-                    #     info_dict['process_completed'] = False
-                    # elif float(info_dict['progress']) == 100:
-                    #     info_dict['process_completed'] = True
+                    if float(info_dict['progress']) < 100:
+                        info_dict['process_completed'] = False
+                    elif float(info_dict['progress']) > 90:
+                        info_dict['process_completed'] = True
                     with process_lock:
                         info_container[process_number] = info_dict
                     queue.put((process_number, info_container))
-                    print(output, end='\r', flush=True)
+                    # print(output, end='\r', flush=True)
                     asyncio.run(giveMeLine(curpos, res['detected_objs'], classes, res))
 
     print(Style.RESET_ALL)
@@ -239,10 +240,27 @@ def run_detection(*args):
     return result
 
 
-def terminal_printer(queue, quantity_processes, final_results, info_container):
+def terminal_printer(queue, quantity_processes, info_container):
     cursor_up = lambda lines: '\x1b[{0}A'.format(lines)
     value = 0
+    time.sleep(15)
     while True:
         output = ""
         for i in range(quantity_processes):
+            try:
+                process_number, value = queue.get(block=False)
+                output += f"Process {process_number} | {value[process_number]['object']} | progress {value[process_number]['progress']} | remaining_time {value[process_number]['remaining_time']} | recognized_for {value[process_number]['recognized_for']} | process_completed {value[process_number]['process_completed']}"
+                output += '\n'
+            except Exception as er:
+                output += ""
+                # pass
+                # logger.error(er)
+        print(output, end='\r')
+        # logger.debug(info_container[0])
+        try:
+            if int(info_container[0]['process_completed']) == True:
+                break
+        except KeyError as er:
             pass
+        time.sleep(0.5)
+        print(cursor_up(quantity_processes + 1))
