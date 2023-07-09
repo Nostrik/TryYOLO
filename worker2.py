@@ -228,6 +228,30 @@ def worker_parser(target_video, weight_file, save_csv, save_video, verbose, queu
     # print(f'Обработка {(os.path.basename(weight_file)).replace(".pt","")} окончена за: {end_time - start_time:.0f} сек')
     return output_listing
 
+
+# def worker(target_video, weight_file, save_csv, save_video, verbose, queue=None, quantity_processes=None, final_results=None, info_container=None, process_number=0):
+#     process_lock = Lock()
+#     info_dict = {
+#         "object": "",
+#         "progress": "",
+#         "remaining_time": "",
+#         "recognized_for": "",
+#         "process_completed": False,
+#     }
+#     for i in range(20):
+#         info_dict = {
+#         "object": process_number,
+#         "progress": i,
+#         "remaining_time": "",
+#         "recognized_for": "",
+#         "process_completed": False,
+#     }
+#         with process_lock:
+#             info_container[process_number] = info_dict
+#         queue.put((process_number, info_container))
+#         time.sleep(0.3)
+
+
 def run_detection(*args):
     global frames_dict
     thread = threading.Thread(target=async_f2t, args=(args[0],))
@@ -240,23 +264,24 @@ def run_detection(*args):
     return result
 
 
+def proccess_sort():
+    pass
+
+
 def terminal_printer(queue, quantity_processes, info_container):
     cursor_up = lambda lines: '\x1b[{0}A'.format(lines)
     value = 0
-    time.sleep(15)
+    time.sleep(17)
     while True:
         output = ""
         for i in range(quantity_processes):
             try:
                 process_number, value = queue.get(block=False)
-                output += f"Process {process_number} | {value[process_number]['object']} | progress {value[process_number]['progress']} | remaining_time {value[process_number]['remaining_time']} | recognized_for {value[process_number]['recognized_for']} | process_completed {value[process_number]['process_completed']}"
+                output += f"Process {process_number} | {value[process_number]['object']} | Текущий прогресс: {value[process_number]['progress']}% | Осталось: ~ {value[process_number]['remaining_time']} | Кадр распознан за: {value[process_number]['recognized_for']} | process_completed {value[process_number]['process_completed']}"
                 output += '\n'
             except Exception as er:
                 output += ""
-                # pass
-                # logger.error(er)
         print(output, end='\r')
-        # logger.debug(info_container[0])
         try:
             if int(info_container[0]['process_completed']) == True:
                 break

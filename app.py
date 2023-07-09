@@ -211,13 +211,10 @@ def pre_detection(params: dict) -> None:
                 results_container = process_manager.list([0] * quantity_processes)
                 lock = Lock()
                 queue = Queue()
-                print('\n' * quantity_processes)
-                # p_printer = Process(target=printer, args=(queue, quantity_processes, final_results, info_container))
-                # p_printer.start()
-                # for i in range(quantity_processes):
-                # for i_weight_choice in params['weight_files_choice']:
+                print('\n' * (quantity_processes- 1))
                 p_printer = Process(target=terminal_printer, args=(queue, quantity_processes, info_container))
                 p_printer.start()
+                logger.debug(f"printer {p_printer.pid}")
                 for i_process, i_weight_choice in enumerate(params['weight_files_choice']):
                     p = Process(target=run_detection, args=(
                         params['target_video'], params['weight_files'][int(i_weight_choice) - 1], params['save_csv'], params['save_video'], params['verbose'],
@@ -225,6 +222,7 @@ def pre_detection(params: dict) -> None:
                         ))
                     proc_list.append(p)
                     p.start()
+                    logger.debug(f"worker {p.pid}")
                 for p in proc_list:
                     p.join()
                 queue.put(None)
