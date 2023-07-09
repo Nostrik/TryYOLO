@@ -195,26 +195,21 @@ def pre_detection(params: dict) -> None:
                 info_container = process_manager.list()
                 final_results = process_manager.list([0] * quantity_processes)
 
-                # for i_weight_choice in params['weight_files_choice']:
                 for i in range(quantity_processes):
                     info_dict = process_manager.dict()
-                    # info_dict["process"] = i
-                    # info_dict["value"] = 0
                     info_dict = {
+                        "process": 0,
                         "object": None,
                         "progress": "",
                         "remaining_time": "",
                         "recognized_for": "",
                         "process_completed": False,
+                        "output_listing": "",
                     }
                     info_container.append(info_dict)
-                results_container = process_manager.list([0] * quantity_processes)
-                lock = Lock()
-                queue = Queue()
-                print('\n' * (quantity_processes- 1))
+                queue = process_manager.Queue()
                 p_printer = Process(target=terminal_printer, args=(queue, quantity_processes, info_container))
-                p_printer.start()
-                logger.debug(f"printer {p_printer.pid}")
+            
                 for i_process, i_weight_choice in enumerate(params['weight_files_choice']):
                     p = Process(target=run_detection, args=(
                         params['target_video'], params['weight_files'][int(i_weight_choice) - 1], params['save_csv'], params['save_video'], params['verbose'],
@@ -222,16 +217,17 @@ def pre_detection(params: dict) -> None:
                         ))
                     proc_list.append(p)
                     p.start()
-                    logger.debug(f"worker {p.pid}")
-                for p in proc_list:
-                    p.join()
+                    
+                if proc_list[0].is_alive():
+                    p_printer.start()
+                    # logger.debug(f"printer pid {p_printer.pid}")
                 queue.put(None)
                 p_printer.join()
             try:       
                 for info_dict in info_container:
-                    print(info_dict)
+                    print(info_dict['output_listing'])
             except BrokenPipeError as er:
-                print(f"Соединение было закрыто: {er}")  
+                print(f"Соединение было закрыто: {er}")
 
     except FileNotFoundError as er:
         print("Неверно указаны файлы весов!")

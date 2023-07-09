@@ -1,6 +1,6 @@
 import time as tm
 import sys
-from multiprocessing import Process, Manager, Lock, Queue
+from multiprocessing import Process, Manager, Lock
 from pprint import pprint
 from loguru import logger
 
@@ -20,7 +20,7 @@ def worker(process_number, info_container, queue):
         tm.sleep(0.3)
 
 
-def printer(queue, quantity_processes, info_container):
+def printer(quantity_processes, info_container):
     cursor_up = lambda lines: '\x1b[{0}A'.format(lines)
     value = 0
     while True:
@@ -30,13 +30,6 @@ def printer(queue, quantity_processes, info_container):
         for info_dict in sorted_info_container:
             output += f"Process {info_dict['process']}, value {info_dict['value']}    "
             output += '\n'
-        # for i in range(quantity_processes):
-        #     try:
-        #         process_number, value = queue.get(block=False)
-        #         output += f"Process {process_number}, value {value[process_number]['value']}    "
-        #         output += '\n'
-        #     except:
-        #         output += " " * (len(f"Process {i}: 0    ") - 1)
         print(output, end='\r')
         if info_container[0]['value'] > 18:
             break
@@ -54,11 +47,9 @@ if __name__ == "__main__":
             info_dict["process"] = i
             info_dict["value"] = 0
             info_container.append(info_dict)
-        results_container = m.list([0] * quantity_processes)
-        lock = Lock()
-        queue = Queue()
-        # print('\n' * (quantity_processes - 1))
-        p_printer = Process(target=printer, args=(queue, quantity_processes, info_container))
+        lock = m.Lock()
+        queue = m.Queue()
+        p_printer = Process(target=printer, args=(quantity_processes, info_container))
         p_printer.start()
         logger.debug(f"priner {p_printer.pid}")
         for i in range(quantity_processes):

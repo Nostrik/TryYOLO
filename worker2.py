@@ -176,11 +176,13 @@ def worker_parser(target_video, weight_file, save_csv, save_video, verbose, queu
 
     process_lock = Lock()
     info_dict = {
+        "process": process_number,
         "object": classes.keys(),
         "progress": "",
         "remaining_time": "",
         "recognized_for": "",
         "process_completed": False,
+        "output_listing": "",
     }
     info_container
     while True:
@@ -213,13 +215,23 @@ def worker_parser(target_video, weight_file, save_csv, save_video, verbose, queu
                     info_dict['progress'] = '{:.2f}'.format(100 * curpos / int(res['total_amount']))
                     info_dict['remaining_time'] = remaining_time_str
                     info_dict['recognized_for'] = res['processing_time']
+                    info_dict['output_listing'] = output_listing
+
                     if float(info_dict['progress']) < 100:
                         info_dict['process_completed'] = False
                     elif float(info_dict['progress']) > 90:
                         info_dict['process_completed'] = True
                     with process_lock:
-                        info_container[process_number] = info_dict
-                    queue.put((process_number, info_container))
+                        try:
+                            info_container[process_number] = info_dict
+                        except Exception as e:
+                            # print(f"line 226 {e}")
+                            pass
+                    try:
+                        queue.put((process_number, info_container))
+                    except Exception as e:
+                        # print(f"line 230 {e}")
+                        pass
                     # print(output, end='\r', flush=True)
                     asyncio.run(giveMeLine(curpos, res['detected_objs'], classes, res))
 
@@ -229,35 +241,14 @@ def worker_parser(target_video, weight_file, save_csv, save_video, verbose, queu
     return output_listing
 
 
-# def worker(target_video, weight_file, save_csv, save_video, verbose, queue=None, quantity_processes=None, final_results=None, info_container=None, process_number=0):
-#     process_lock = Lock()
-#     info_dict = {
-#         "object": "",
-#         "progress": "",
-#         "remaining_time": "",
-#         "recognized_for": "",
-#         "process_completed": False,
-#     }
-#     for i in range(20):
-#         info_dict = {
-#         "object": process_number,
-#         "progress": i,
-#         "remaining_time": "",
-#         "recognized_for": "",
-#         "process_completed": False,
-#     }
-#         with process_lock:
-#             info_container[process_number] = info_dict
-#         queue.put((process_number, info_container))
-#         time.sleep(0.3)
-
-
 def run_detection(*args):
     global frames_dict
     thread = threading.Thread(target=async_f2t, args=(args[0],))
     thread.start()
-
-    result = worker_parser(*args)
+    try:
+        result = worker_parser(*args)
+    except Exception as e:
+        print(f"line 244 {e}")
 
     thread.join()
 
@@ -274,13 +265,14 @@ def terminal_printer(queue, quantity_processes, info_container):
     time.sleep(17)
     while True:
         output = ""
-        for i in range(quantity_processes):
-            try:
-                process_number, value = queue.get(block=False)
-                output += f"Process {process_number} | {value[process_number]['object']} | Текущий прогресс: {value[process_number]['progress']}% | Осталось: ~ {value[process_number]['remaining_time']} | Кадр распознан за: {value[process_number]['recognized_for']} | process_completed {value[process_number]['process_completed']}"
+        sorted_info_container = sorted(info_container, key=lambda x: x["process"])
+        for info_dict in sorted_info_container:
+            if info_dict['process_completed'] != True:
+                output += f"Process {info_dict['process']} | {info_dict['object']} | Текущий прогресс: {info_dict['progress']}% | Осталось: ~ {info_dict['remaining_time']} | Кадр распознан за: {info_dict['recognized_for']} | process_completed {info_dict['process_completed']}"
                 output += '\n'
-            except Exception as er:
-                output += ""
+            else:
+                output += " " * 150
+                output += '\n'
         print(output, end='\r')
         try:
             if int(info_container[0]['process_completed']) == True:
