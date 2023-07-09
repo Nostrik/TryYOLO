@@ -7,7 +7,7 @@ from loguru import logger
 logger.remove(0)
 i = "INFO"
 d = "DEBUG"
-logger.add(sys.stdout, level=d)
+logger.add(sys.stdout, level=i)
 
 
 def worker(process_number, info_container, queue):
@@ -45,7 +45,7 @@ def printer(queue, quantity_processes, info_container):
 
 
 if __name__ == "__main__":
-    quantity_processes = 3  # Задаем количество процессов
+    quantity_processes = int(input('How many processes to run: '))
     with Manager() as m:
         process_list = []
         info_container = m.list()
@@ -57,7 +57,7 @@ if __name__ == "__main__":
         results_container = m.list([0] * quantity_processes)
         lock = Lock()
         queue = Queue()
-        print('\n' * (quantity_processes - 1))
+        # print('\n' * (quantity_processes - 1))
         p_printer = Process(target=printer, args=(queue, quantity_processes, info_container))
         p_printer.start()
         logger.debug(f"priner {p_printer.pid}")
