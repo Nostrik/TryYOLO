@@ -215,6 +215,7 @@ def worker_parser(target_video, weight_file, save_csv, save_video, verbose, queu
                     info_dict['progress'] = '{:.2f}'.format(100 * curpos / int(res['total_amount']))
                     info_dict['remaining_time'] = remaining_time_str
                     info_dict['recognized_for'] = res['processing_time']
+                    # logger.debug(output_listing)
                     info_dict['output_listing'] = output_listing
 
                     if float(info_dict['progress']) < 100:
@@ -259,25 +260,20 @@ def proccess_sort():
     pass
 
 
-def terminal_printer(queue, quantity_processes, info_container):
+def terminal_printer(quantity_processes, info_container):
     cursor_up = lambda lines: '\x1b[{0}A'.format(lines)
-    value = 0
     time.sleep(17)
-    while True:
+    continue_output = True
+    while continue_output:
         output = ""
+        completed_list = []
         sorted_info_container = sorted(info_container, key=lambda x: x["process"])
         for info_dict in sorted_info_container:
-            if info_dict['process_completed'] != True:
-                output += f"Process {info_dict['process']} | {info_dict['object']} | Текущий прогресс: {info_dict['progress']}% | Осталось: ~ {info_dict['remaining_time']} | Кадр распознан за: {info_dict['recognized_for']} | process_completed {info_dict['process_completed']}"
-                output += '\n'
-            else:
-                output += " " * 150
-                output += '\n'
+            output += f"{info_dict['object']} | Текущий прогресс: {info_dict['progress']}% | Осталось: ~ {info_dict['remaining_time']} | Кадр распознан за: {info_dict['recognized_for']}"
+            output += '\n'
+            completed_list.append(info_dict['process_completed'])
         print(output, end='\r')
-        try:
-            if int(info_container[0]['process_completed']) == True:
-                break
-        except KeyError as er:
-            pass
+        if all(completed_list):
+            continue_output = False
         time.sleep(0.5)
         print(cursor_up(quantity_processes + 1))

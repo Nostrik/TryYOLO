@@ -167,7 +167,7 @@ def pre_detection(params: dict) -> None:
 
     try:
         if len(params['weight_files_choice']) == 0:
-           results = run_detection(params['target_video'], params['weight_file'], params['save_csv'], params['save_video'], params['verbose']                      
+            results = run_detection(params['target_video'], params['weight_file'], params['save_csv'], params['save_video'], params['verbose']                      
                                    )
             # start_detection(procces_cnt, params)
         else:
@@ -208,7 +208,7 @@ def pre_detection(params: dict) -> None:
                     }
                     info_container.append(info_dict)
                 queue = process_manager.Queue()
-                p_printer = Process(target=terminal_printer, args=(queue, quantity_processes, info_container))
+                p_printer = Process(target=terminal_printer, args=(quantity_processes, info_container))
             
                 for i_process, i_weight_choice in enumerate(params['weight_files_choice']):
                     p = Process(target=run_detection, args=(
@@ -225,7 +225,7 @@ def pre_detection(params: dict) -> None:
                 p_printer.join()
             try:       
                 for info_dict in info_container:
-                    print(info_dict['output_listing'])
+                    print(info_dict)
             except BrokenPipeError as er:
                 print(f"Соединение было закрыто: {er}")
 
@@ -242,7 +242,7 @@ if __name__ == "__main__":
         description='Консольный интерфейс детектирования проблем на выбранном видеофрагменте',
     )
 
-    parser.add_argument('-i', '--input', dest='input', required=False, help='Интерактивный режим ввода', default=False, action=argparse.BooleanOptionalAction)
+    parser.add_argument('-i', '--input', dest='input', required=False, help='Интерактивный режим ввода', default=True, action=argparse.BooleanOptionalAction)
     parser.add_argument('-c', '--save_csv', dest='save_csv', action='store_true', required=False, help='Сохранение результатов в csv файл')
     parser.add_argument('-s', '--save_video', dest='save_video', action='store_true', required=False, help='Сохранение видео с результатами работы')
     parser.add_argument('-t', '--target_video', metavar='target_video', required=False, help='Путь к видео для обработки')
