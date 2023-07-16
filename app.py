@@ -26,23 +26,6 @@ def print_disclaimer() -> None:
     print(disclaimer)
 
 
-def create_csv(file_name: Any, header, data: Any) -> None:
-    with open(file_name, 'w', newline='') as csv_file:
-        writer = csv.writer(csv_file, delimiter='|')
-        csv_file.write("Объект|Таймкод|Таймкод окончания\n")
-        for v in data:
-            writer.writerow([v[0]]+[q for q in v[1]])
-
-
-def create_result_file(data: Any, weight_file_name: Any, video_file_name: Any) -> None:
-    csv_file_name = str(datetime.now())[:19].replace(' ', ' ').replace(':', '') + ".csv"
-    header_name = f"{str(datetime.now())[:19]} | {str(weight_file_name).replace('.pt', '')} | {str(video_file_name).replace('.', '')}"
-    try:
-        create_csv('runs/detect/predict/' + csv_file_name, header_name, data)
-    except FileNotFoundError:
-        create_csv(csv_file_name, header_name, data)
-
-
 def verbose_function(lines: list) -> None:
     for line in lines:
         print(f"Объект {line[0]} \t| timecode: {' - '.join(map('{:.3f}'.format, line[1]))}")
@@ -204,7 +187,6 @@ def pre_detection(params: dict) -> None:
                         "remaining_time": "",
                         "recognized_for": "",
                         "process_completed": False,
-                        "output_listing": "",
                     }
                     info_container.append(info_dict)
                 queue = process_manager.Queue()
@@ -220,14 +202,17 @@ def pre_detection(params: dict) -> None:
                     
                 if proc_list[0].is_alive():
                     p_printer.start()
-                    # logger.debug(f"printer pid {p_printer.pid}")
                 queue.put(None)
                 p_printer.join()
             try:       
                 for info_dict in info_container:
                     print(info_dict)
             except BrokenPipeError as er:
-                print(f"Соединение было закрыто: {er}")
+                # print(f"Соединение было закрыто: {er}")
+                pass
+
+        if params['weight_file'] == 'black-frame.pt':
+            print('BFD')
 
     except FileNotFoundError as er:
         print("Неверно указаны файлы весов!")
@@ -243,7 +228,7 @@ if __name__ == "__main__":
     )
 
     parser.add_argument('-i', '--input', dest='input', required=False, help='Интерактивный режим ввода', default=True, action=argparse.BooleanOptionalAction)
-    parser.add_argument('-c', '--save_csv', dest='save_csv', action='store_true', required=False, help='Сохранение результатов в csv файл')
+    parser.add_argument('-c', '--save_csv', dest='save_csv', action='store_true', required=False, default=True, help='Сохранение результатов в csv файл')
     parser.add_argument('-s', '--save_video', dest='save_video', action='store_true', required=False, help='Сохранение видео с результатами работы')
     parser.add_argument('-t', '--target_video', metavar='target_video', required=False, help='Путь к видео для обработки')
     parser.add_argument('-v', '--verbose', dest='verbose', action='store_true', required=False, help='debug option')

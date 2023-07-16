@@ -9,8 +9,11 @@ import queue
 from colorama import init, Fore, Style
 from loguru import logger
 from multiprocessing import Lock
+from datetime import datetime
+from typing import Any
+import csv
 
-# logger.add('logs/logs.log', level='DEBUG', format="{time} {level} {message}")
+
 some_sortof_res=dict()
 
 res_buffer=dict()
@@ -19,40 +22,22 @@ frames_dict = {}
 frames_queue = queue.Queue()
 
 
-init()
-colors = [
-    Fore.BLUE,
-    Fore.CYAN,
-    Fore.GREEN,
-    Fore.LIGHTBLACK_EX,
-    Fore.LIGHTBLUE_EX,
-    Fore.LIGHTCYAN_EX,
-    Fore.LIGHTGREEN_EX,
-    Fore.LIGHTMAGENTA_EX,
-    Fore.LIGHTRED_EX,
-    Fore.LIGHTWHITE_EX,
-    Fore.LIGHTYELLOW_EX,
-    Fore.MAGENTA,
-    Fore.RED
-    ]
+def create_csv(file_name: Any, header, data: Any) -> None:
+    with open(file_name, 'w', newline='') as csv_file:
+        writer = csv.writer(csv_file, delimiter='|')
+        csv_file.write("Объект|Таймкод|Таймкод окончания\n")
+        for v in data:
+            writer.writerow([v[0]]+[q for q in v[1]])
 
-def rainbow_print(*args, **kwargs):
-    global colors
-    color_index = 0
-    for arg in args:
-        arg = re.sub(' +', ' ', arg)
-        for letter in arg:
-            color_index += 1
-            if color_index == len(colors):
-                color_index = 0
 
-            color = colors[color_index]
+def create_result_file(data: Any, weight_file_name: Any, video_file_name: Any) -> None:
+    csv_file_name = str(weight_file_name).replace('.pt', ' ') + str(datetime.now())[:19].replace(' ', ' ').replace(':', '') + ".csv"
+    header_name = f"{str(datetime.now())[:19]} | {str(weight_file_name).replace('.pt', '')} | {str(video_file_name).replace('.', '')}"
+    try:
+        create_csv('runs/detect/predict/' + csv_file_name, header_name, data)
+    except FileNotFoundError:
+        create_csv(csv_file_name, header_name, data)
 
-            print(color + letter, end="")
-
-    colors = colors[1:] + colors[:1]
-
-    print(Style.RESET_ALL, **kwargs)
 
 @logger.catch
 def async_f2t(video_path):
@@ -182,7 +167,6 @@ def worker_parser(target_video, weight_file, save_csv, save_video, verbose, queu
         "remaining_time": "",
         "recognized_for": "",
         "process_completed": False,
-        "output_listing": "",
     }
     info_container
     while True:
@@ -215,8 +199,6 @@ def worker_parser(target_video, weight_file, save_csv, save_video, verbose, queu
                     info_dict['progress'] = '{:.2f}'.format(100 * curpos / int(res['total_amount']))
                     info_dict['remaining_time'] = remaining_time_str
                     info_dict['recognized_for'] = res['processing_time']
-                    # logger.debug(output_listing)
-                    info_dict['output_listing'] = output_listing
 
                     if float(info_dict['progress']) < 100:
                         info_dict['process_completed'] = False
@@ -239,6 +221,9 @@ def worker_parser(target_video, weight_file, save_csv, save_video, verbose, queu
     print(Style.RESET_ALL)
 
     # print(f'Обработка {(os.path.basename(weight_file)).replace(".pt","")} окончена за: {end_time - start_time:.0f} сек')
+    if save_csv:
+        create_result_file(data=output_listing, weight_file_name=weight_file, video_file_name=target_video)
+
     return output_listing
 
 
@@ -254,10 +239,6 @@ def run_detection(*args):
     thread.join()
 
     return result
-
-
-def proccess_sort():
-    pass
 
 
 def terminal_printer(quantity_processes, info_container):
