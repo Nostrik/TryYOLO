@@ -73,3 +73,4 @@ if __name__ == "__main__":
             p.join()
         queue.put(None)
         p_printer.join()
+        

@@ -158,7 +158,7 @@ def pre_detection(params: dict) -> None:
                 info_container = process_manager.list()
                 final_results = process_manager.list([0] * quantity_processes)
 
-                for i in range(quantity_processes):
+                for _ in range(quantity_processes):
                     info_dict = process_manager.dict()
                     info_dict = {
                         "process": 0,
