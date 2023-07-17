@@ -8,6 +8,7 @@ from multiprocessing import Process, Manager, Lock, Queue
 import sys
 from fndBack import black_frame_detect
 from loguru import logger
+from pprint import pprint
 
 
 disclaimer = "| Данное программное обеспечение предназначено для поиска и обнаружения объектов на различных видеоматериалах.|\n|" + \
@@ -146,32 +147,11 @@ def interactive_ui(args: Any) -> dict:
 
 @logger.catch
 def pre_detection(params: dict) -> None:
-
-
     try:
         if len(params['weight_files_choice']) == 0:
             results = run_detection(params['target_video'], params['weight_file'], params['save_csv'], params['save_video'], params['verbose']                      
                                    )
-            # start_detection(procces_cnt, params)
         else:
-            # for i_weight_choice in params['weight_files_choice']:
-            #     if params['weight_files'][int(i_weight_choice) - 1] != params['black_frame_path']:
-            #         # results = run_detection(params['target_video'], params['weight_files'][int(i_weight_choice) - 1], params['save_csv'], params['save_video'], params['verbose'])
-
-                    
-            #         p = Process(target=run_detection, args=(params['target_video'], params['weight_files'][int(i_weight_choice) - 1], params['save_csv'], params['save_video'], params['verbose']))
-            #         proc_list.append(p)
-            #         p.start()
-
-            #         if params['verbose']:
-            #             verbose_function(results)
-            #         if params['save_csv']:
-            #             create_result_file(results, params['weight_files'][int(i_weight_choice) - 1], params['target_video'])
-            #         results = []
-
-            #     else:
-            #         black_f_detector_function(params['target_video'])
-
             with Manager() as process_manager:
                 quantity_processes = len(params['weight_files_choice'])
                 proc_list = []
@@ -193,27 +173,21 @@ def pre_detection(params: dict) -> None:
                 p_printer = Process(target=terminal_printer, args=(quantity_processes, info_container))
             
                 for i_process, i_weight_choice in enumerate(params['weight_files_choice']):
-                    p = Process(target=run_detection, args=(
-                        params['target_video'], params['weight_files'][int(i_weight_choice) - 1], params['save_csv'], params['save_video'], params['verbose'],
-                        queue, quantity_processes, final_results, info_container, i_process,
-                        ))
-                    proc_list.append(p)
-                    p.start()
-                    
-                if proc_list[0].is_alive():
-                    p_printer.start()
-                queue.put(None)
-                p_printer.join()
-            try:       
-                for info_dict in info_container:
-                    print(info_dict)
-            except BrokenPipeError as er:
-                # print(f"Соединение было закрыто: {er}")
-                pass
+                    if params['weight_files'][int(i_weight_choice) - 1] != params['black_frame_path']:                        
+                        p = Process(target=run_detection, args=(
+                            params['target_video'], params['weight_files'][int(i_weight_choice) - 1], params['save_csv'], params['save_video'], params['verbose'],
+                            queue, quantity_processes, final_results, info_container, i_process,
+                            ))
+                        proc_list.append(p)
+                        p.start()
+                    else:
+                        black_f_detector_function(params['target_video'])
 
-        if params['weight_file'] == 'black-frame.pt':
-            print('BFD')
-
+                if proc_list:
+                    if proc_list[0].is_alive():
+                        p_printer.start()
+                    queue.put(None)
+                    p_printer.join()
     except FileNotFoundError as er:
         print("Неверно указаны файлы весов!")
         print(er)
