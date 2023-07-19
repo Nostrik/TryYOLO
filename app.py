@@ -181,7 +181,13 @@ def pre_detection(params: dict) -> None:
                         proc_list.append(p)
                         p.start()
                     else:
-                        black_f_detector_function(params['target_video'])
+                        # black_f_detector_function(params['target_video'])
+                        p = Process(target=black_frame_detect, args=(
+                            params['target_video'],params['weight_files'][int(i_weight_choice) - 1], params['save_csv'], params['save_video'], params['verbose'],
+                            queue, quantity_processes, final_results, info_container, i_process,
+                            ))
+                        proc_list.append(p)
+                        p.start()
 
                 if proc_list:
                     if proc_list[0].is_alive():
