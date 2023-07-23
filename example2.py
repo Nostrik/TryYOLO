@@ -1,7 +1,7 @@
 from tqdm import tqdm
 import time
 
-total_iterations = 10
+total_iterations = 100
 current_iteration = 0
 
 while True:

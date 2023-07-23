@@ -63,4 +63,5 @@ def f2t(video_path):
 # print(len(f2t("k:\\nik\\Projects\\Yolo\\from tv 21\\Shitfest.mp4")))
 # print(len(f2t("k:\\nik\\Projects\\Yolo\\workground\\ad1.mkv")))
 
-
+if __name__ == '__main__':
+    print(video_duration("C:\\Users\\Maxim\\tv-21-app\\tv21-app-rep2\\input\\Shitfest.mp4"))

@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Any
 from multiprocessing import Process, Manager, Lock, Queue
 import sys
-from fndBack import black_frame_detect
+from fndBack import black_frame_detect, black_frame_detect_with_multiprocess
 from loguru import logger
 from pprint import pprint
 
