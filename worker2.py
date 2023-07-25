@@ -83,12 +83,8 @@ def parse_yoloput(line):
     processing_time = rest_of_line.rsplit(',', maxsplit=1)[1].strip()
 
     return {
-        # 'video_num': video_num,
-        # 'video_total': video_total,
         'current_pos': current_pos,
         'total_amount': total_amount,
-        # 'path_to_file': path_to_file,
-        # 'video_size': video_size,
         'detected_objs': detected_objs,
         'processing_time': processing_time
     }
@@ -150,12 +146,8 @@ def worker_parser(target_video, weight_file, save_csv, save_video, verbose, queu
                 (['save_conf=True'] if save_csv else []) + \
                 (['save_crop=True'] if save_video else []) + \
                 (['save=True'] if save_video else [])
-    # logger.debug(f"weight file - [{weight_file}]")
-    # logger.debug(f"video file - [{target_video}]")
     model=torch.load(weight_file, map_location=torch.device('cpu'))
     classes = {y: x for x, y in model['model'].names.items()}
-
-    # print(f"Мы ищем следующие объекты: {', '.join(list(classes.keys()))}")
     process = subprocess.Popen(PopenPars, stderr=subprocess.PIPE)
     start_time = time.time()
 
@@ -208,19 +200,15 @@ def worker_parser(target_video, weight_file, save_csv, save_video, verbose, queu
                         try:
                             info_container[process_number] = info_dict
                         except Exception as e:
-                            # print(f"line 226 {e}")
                             pass
                     try:
                         queue.put((process_number, info_container))
                     except Exception as e:
-                        # print(f"line 230 {e}")
                         pass
-                    # print(output, end='\r', flush=True)
                     asyncio.run(giveMeLine(curpos, res['detected_objs'], classes, res))
 
     print(Style.RESET_ALL)
 
-    # print(f'Обработка {(os.path.basename(weight_file)).replace(".pt","")} окончена за: {end_time - start_time:.0f} сек')
     if save_csv:
         create_result_file(data=output_listing, weight_file_name=weight_file, video_file_name=target_video)
 
