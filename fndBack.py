@@ -6,7 +6,7 @@ import time
 from tqdm import tqdm
 from frame2timecode import f2t
 from frame2timecode import video_duration
-from worker2 import create_result_file
+from worker import create_result_file
 from datetime import datetime
 from multiprocessing import Lock
 from loguru import logger
@@ -43,8 +43,8 @@ def black_frame_detect_with_multiprocess(video_path, weight_file, save_csv, save
         "process": process_number,
         "object": 'black-frame',
         "progress": "",
-        "remaining_time": "",
-        "recognized_for": "",
+        "remaining_time": "~",
+        "recognized_for": "~",
         "process_completed": False,
     }
     info_container
@@ -63,9 +63,10 @@ def black_frame_detect_with_multiprocess(video_path, weight_file, save_csv, save
                 time_str = match_time.group(1)
                 time_dt = datetime.strptime(time_str, '%H:%M:%S.%f')
                 time_r = (time_dt - datetime(1900, 1, 1)).total_seconds()
-            t_progress = str(round(time_r / total_t * 100, 1))
-            info_dict['progress'] = t_progress
-            info_dict['remaining_time'] = '~'
+            t_progress = round(time_r / total_t * 100, 1)
+            info_dict['progress'] = str(t_progress)
+            if t_progress == 100:
+                info_dict['process_completed'] = True
         else:
             match = re.search(r'black_start:([\d\.]+) black_end:([\d\.]+) black_duration:([\d\.]+)', line)
             if match:
@@ -87,9 +88,11 @@ def black_frame_detect_with_multiprocess(video_path, weight_file, save_csv, save
         except Exception:
             pass
 
-        # if save_csv:
-        #     create_result_file(data=bf, weight_file_name='black-frame.pt', video_file_name=video_path)
-    return bf
+    if save_csv:
+        create_result_file(data=bf, weight_file_name='black-frame.pt', video_file_name=video_path)
+        # print()
+        # for i in bf:
+        #     print(f'Чёрный кадр с {i[0]:.3f} сек. по {i[1]:.3f} сек. (длительность {i[2]:.3f} сек.)')
 
 
 # q1 = black_frame_detect_with_multiprocess("C:\\Users\\Maxim\\tv-21-app\\tv21-app-rep2\\input\\Shitfest.mp4", )

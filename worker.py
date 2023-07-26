@@ -4,9 +4,15 @@ import time
 import torch
 import asyncio
 import re
-from colorama import init, Fore, Style
 import threading
 import queue
+from colorama import init, Fore, Style
+from loguru import logger
+from multiprocessing import Lock
+from datetime import datetime
+from typing import Any
+import csv
+
 
 some_sortof_res=dict()
 
@@ -16,41 +22,36 @@ frames_dict = {}
 frames_queue = queue.Queue()
 
 
-init()
-colors = [
-    Fore.BLUE,
-    Fore.CYAN,
-    Fore.GREEN,
-    Fore.LIGHTBLACK_EX,
-    Fore.LIGHTBLUE_EX,
-    Fore.LIGHTCYAN_EX,
-    Fore.LIGHTGREEN_EX,
-    Fore.LIGHTMAGENTA_EX,
-    Fore.LIGHTRED_EX,
-    Fore.LIGHTWHITE_EX,
-    Fore.LIGHTYELLOW_EX,
-    Fore.MAGENTA,
-    Fore.RED
-    ]
+# def create_csv(file_name: Any, header, data: Any) -> None:
+#     with open(file_name, 'w', newline='') as csv_file:
+#         writer = csv.writer(csv_file, delimiter='|')
+#         csv_file.write("Объект|Таймкод|Таймкод окончания\n")
+#         for v in data:
+#             writer.writerow([v[0]]+[q for q in v[1]])
 
-def rainbow_print(*args, **kwargs):
-    global colors
-    color_index = 0
-    for arg in args:
-        arg = re.sub(' +', ' ', arg)
-        for letter in arg:
-            color_index += 1
-            if color_index == len(colors):
-                color_index = 0
 
-            color = colors[color_index]
+def create_txt(file_name, header, data):
+    with open(file_name, "w+") as txt_file:
+        txt_file.write(header + "\n")
+        for v in data:
+            # txt_file.write(f"Объект {v[0]}\t| timecode: {str([q for q in v[1]])}\n")
+            txt_file.write(f'Чёрный кадр с {v[0]:.3f} сек. по {v[1]:.3f} сек. (длительность {v[2]:.3f} сек.)')
 
-            print(color + letter, end="")
 
-    colors = colors[1:] + colors[:1]
+def create_result_file(data: Any, weight_file_name: Any, video_file_name: Any) -> None:
+    csv_file_name = str(weight_file_name).replace('.pt', ' ') + str(datetime.now())[:19].replace(' ', ' ').replace(':', '') + ".csv"
+    header_name = f"{str(datetime.now())[:19]} | {str(weight_file_name).replace('.pt', '')} | {str(video_file_name).replace('.', '')}"
+    # try:
+    #     create_csv('runs/detect/predict/' + csv_file_name, header_name, data)
+    # except FileNotFoundError:
+    #     create_csv(csv_file_name, header_name, data)
+    try:
+        create_txt('runs/detect/predict/' + csv_file_name, header_name, data)
+    except FileNotFoundError:
+        create_txt(csv_file_name, header_name, data)
 
-    print(Style.RESET_ALL, **kwargs)
 
+@logger.catch
 def async_f2t(video_path):
     global frames_queue
 
@@ -94,12 +95,8 @@ def parse_yoloput(line):
     processing_time = rest_of_line.rsplit(',', maxsplit=1)[1].strip()
 
     return {
-        # 'video_num': video_num,
-        # 'video_total': video_total,
         'current_pos': current_pos,
         'total_amount': total_amount,
-        # 'path_to_file': path_to_file,
-        # 'video_size': video_size,
         'detected_objs': detected_objs,
         'processing_time': processing_time
     }
@@ -151,7 +148,7 @@ async def giveMeLine(cur_frame, detected_objs, classes, res):
     for i in temp_list:
         res_buffer[i]=[cur_frame]
 
-def worker_parser(target_video, weight_file, save_csv, save_video, verbose):
+def worker_parser(target_video, weight_file, save_csv, save_video, verbose, queue=None, quantity_processes=None, final_results=None, info_container=None, process_number=0):
     global frames_dict
     global output_listing
 
@@ -161,15 +158,21 @@ def worker_parser(target_video, weight_file, save_csv, save_video, verbose):
                 (['save_conf=True'] if save_csv else []) + \
                 (['save_crop=True'] if save_video else []) + \
                 (['save=True'] if save_video else [])
-
     model=torch.load(weight_file, map_location=torch.device('cpu'))
     classes = {y: x for x, y in model['model'].names.items()}
-
-    # print(f"Мы ищем следующие объекты: {', '.join(list(classes.keys()))}")
-
     process = subprocess.Popen(PopenPars, stderr=subprocess.PIPE)
-    
     start_time = time.time()
+
+    process_lock = Lock()
+    info_dict = {
+        "process": process_number,
+        "object": classes.keys(),
+        "progress": "",
+        "remaining_time": "",
+        "recognized_for": "",
+        "process_completed": False,
+    }
+    info_container
     while True:
             output = process.stderr.readline().decode('utf-8')
 
@@ -191,30 +194,67 @@ def worker_parser(target_video, weight_file, save_csv, save_video, verbose):
                         remaining_time_str = f'{remaining_time/60:.0f} мин'
                     else:
                         remaining_time_str = f'{remaining_time/3600:.0f} часов'
-
-                    # output = f"Текущий прогресс: {'{:.2f}'.format(100 * curpos / int(res['total_amount']))}% " + \
-                    #             f"{res['current_pos']}/{res['total_amount']} | " + \
-                    #             f"Осталось: ~{remaining_time_str} | " + \
-                    #             f"Кадр распознан за {res['processing_time']} {res['detected_objs']}                          "
+                    
                     output = f"{', '.join(list(classes.keys()))} | Текущий прогресс: {'{:.2f}'.format(100 * curpos / int(res['total_amount']))}% " + \
                                 f"{res['current_pos']}/{res['total_amount']} | " + \
                                 f"Осталось: ~{remaining_time_str} | " + \
                                 f"Кадр распознан за {res['processing_time']} {res['detected_objs']}                          "
-                    print(output, end='\r', flush=True)
+                    
+                    info_dict['progress'] = '{:.2f}'.format(100 * curpos / int(res['total_amount']))
+                    info_dict['remaining_time'] = remaining_time_str
+                    info_dict['recognized_for'] = res['processing_time']
+
+                    if float(info_dict['progress']) < 100:
+                        info_dict['process_completed'] = False
+                    elif float(info_dict['progress']) > 90:
+                        info_dict['process_completed'] = True
+                    with process_lock:
+                        try:
+                            info_container[process_number] = info_dict
+                        except Exception as e:
+                            pass
+                    try:
+                        queue.put((process_number, info_container))
+                    except Exception as e:
+                        pass
                     asyncio.run(giveMeLine(curpos, res['detected_objs'], classes, res))
 
     print(Style.RESET_ALL)
 
-    # print(f'Обработка {(os.path.basename(weight_file)).replace(".pt","")} окончена за: {end_time - start_time:.0f} сек')
+    if save_csv:
+        create_result_file(data=output_listing, weight_file_name=weight_file, video_file_name=target_video)
+
     return output_listing
 
-def run_detection(target_video, weight_file, save_csv, save_video, verbose):
-    global frames_dict
-    thread = threading.Thread(target=async_f2t, args=(target_video,))
-    thread.start()
 
-    result = worker_parser(target_video, weight_file, save_csv, save_video, verbose)
+def run_detection(*args):
+    global frames_dict
+    thread = threading.Thread(target=async_f2t, args=(args[0],))
+    thread.start()
+    try:
+        result = worker_parser(*args)
+    except Exception as e:
+        print(f"line 244 {e}")
 
     thread.join()
 
     return result
+
+
+def terminal_printer(quantity_processes, info_container):
+    cursor_up = lambda lines: '\x1b[{0}A'.format(lines)
+    time.sleep(17)
+    continue_output = True
+    while continue_output:
+        output = ""
+        completed_list = []
+        sorted_info_container = sorted(info_container, key=lambda x: x["process"])
+        for info_dict in sorted_info_container:
+            output += f"{info_dict['object']} | Текущий прогресс: {info_dict['progress']}% | Осталось: ~ {info_dict['remaining_time']} | Кадр распознан за: {info_dict['recognized_for']}"
+            output += '\n'
+            completed_list.append(info_dict['process_completed'])
+        print(output, end='\r')
+        if all(completed_list):
+            continue_output = False
+        time.sleep(0.5)
+        print(cursor_up(quantity_processes + 1))

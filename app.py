@@ -1,12 +1,12 @@
 import argparse
 import os
 import csv
-from worker2 import run_detection, terminal_printer
+from worker import run_detection, terminal_printer
 from datetime import datetime
 from typing import Any
 from multiprocessing import Process, Manager, Lock, Queue
 import sys
-from fndBack import black_frame_detect, black_frame_detect_with_multiprocess
+from fndBack import black_frame_detect_with_multiprocess
 from loguru import logger
 from pprint import pprint
 
@@ -33,7 +33,7 @@ def verbose_function(lines: list) -> None:
 
 
 def black_f_detector_function(video: Any) -> None:
-    find_black_frames = black_frame_detect(video)
+    find_black_frames = black_frame_detect_with_multiprocess(video)
     for i_one_black_frame in find_black_frames:
         print(f'Чёрный кадр с {i_one_black_frame[0]:.3f} сек. по {i_one_black_frame[1]:.3f} сек. (длительность {i_one_black_frame[2]:.3f} сек.)')
 
@@ -181,7 +181,6 @@ def pre_detection(params: dict) -> None:
                         proc_list.append(p)
                         p.start()
                     else:
-                        # black_f_detector_function(params['target_video'])
                         p = Process(target=black_frame_detect_with_multiprocess, args=(
                             params['target_video'], params['weight_files'][int(i_weight_choice) - 1], params['save_csv'], params['save_video'], params['verbose'],
                             queue, quantity_processes, final_results, info_container, i_process,
@@ -208,7 +207,7 @@ if __name__ == "__main__":
     )
 
     parser.add_argument('-i', '--input', dest='input', required=False, help='Интерактивный режим ввода', default=True, action=argparse.BooleanOptionalAction)
-    parser.add_argument('-c', '--save_csv', dest='save_csv', action='store_true', required=False, default=True, help='Сохранение результатов в csv файл')
+    parser.add_argument('-c', '--save_csv', dest='save_csv', action='store_true', required=False, default=False, help='Сохранение результатов в csv файл')
     parser.add_argument('-s', '--save_video', dest='save_video', action='store_true', required=False, help='Сохранение видео с результатами работы')
     parser.add_argument('-t', '--target_video', metavar='target_video', required=False, help='Путь к видео для обработки')
     parser.add_argument('-v', '--verbose', dest='verbose', action='store_true', required=False, help='debug option')
