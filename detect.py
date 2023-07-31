@@ -23,5 +23,5 @@ print(
     f"save={args.save_video}\n"
 )
 results = subprocess.Popen(
-    ["yolo", "predict", f"model={args.weight_file}", f"source={args.target_video}"], f"save=True", shell=True, stderr=subprocess.STDOUT
+    ["yolo", "predict", f"model={args.weight_file}", f"source={args.target_video}"], shell=True, stderr=subprocess.STDOUT
     )

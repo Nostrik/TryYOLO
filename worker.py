@@ -24,10 +24,9 @@ frames_queue = queue.Queue()
 def create_txt(file_name, header, data):
     with open(file_name, "w+", encoding="utf-8") as txt_file:
         txt_file.write(header + "\n")
-        if 'black-farme' in header:
-            for d in data:
-                for i in d:
-                    txt_file.write(f'Чёрный кадр с {i[0]:.3f} сек. по {i[1]:.3f} сек. (длительность {i[2]:.3f} сек.)')
+        if 'black' in header:
+            for i in data:
+                txt_file.write(f'Чёрный кадр с {i[0]:.3f} сек. по {i[1]:.3f} сек. (длительность {i[2]:.3f} сек.)\n')
         else:
             for v in data:
                 txt_file.write(f"Объект {v[0]}\t| timecode: {str([q for q in v[1]])}\n")

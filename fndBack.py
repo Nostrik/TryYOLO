@@ -27,7 +27,6 @@ def test_cuda():
         return True
 
 
-@logger.catch
 def black_frame_detect_with_multiprocess(video_path, weight_file, save_csv, save_video, verbose, queue=None, quantity_processes=None, final_results=None, info_container=None, process_number=0):
     command = ['ffmpeg', '-i',  video_path, '-filter_complex', 'blackdetect=d=0.1:pix_th=0.05', '-f', 'null', '-']
 
