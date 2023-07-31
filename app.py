@@ -145,7 +145,6 @@ def interactive_ui(args: Any) -> dict:
     }
 
 
-@logger.catch
 def pre_detection(params: dict) -> None:
     try:
         if len(params['weight_files_choice']) == 0:

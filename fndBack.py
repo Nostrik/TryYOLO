@@ -87,12 +87,8 @@ def black_frame_detect_with_multiprocess(video_path, weight_file, save_csv, save
             queue.put(process_number, info_container)
         except Exception:
             pass
-
     if save_csv:
         create_result_file(data=bf, weight_file_name='black-frame.pt', video_file_name=video_path)
-        # print()
-        # for i in bf:
-        #     print(f'Чёрный кадр с {i[0]:.3f} сек. по {i[1]:.3f} сек. (длительность {i[2]:.3f} сек.)')
 
 
 # q1 = black_frame_detect_with_multiprocess("C:\\Users\\Maxim\\tv-21-app\\tv21-app-rep2\\input\\Shitfest.mp4", )

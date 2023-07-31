@@ -11,8 +11,7 @@ from loguru import logger
 from multiprocessing import Lock
 from datetime import datetime
 from typing import Any
-import csv
-
+from loguru import logger
 
 some_sortof_res=dict()
 
@@ -22,36 +21,27 @@ frames_dict = {}
 frames_queue = queue.Queue()
 
 
-# def create_csv(file_name: Any, header, data: Any) -> None:
-#     with open(file_name, 'w', newline='') as csv_file:
-#         writer = csv.writer(csv_file, delimiter='|')
-#         csv_file.write("Объект|Таймкод|Таймкод окончания\n")
-#         for v in data:
-#             writer.writerow([v[0]]+[q for q in v[1]])
-
-
 def create_txt(file_name, header, data):
-    with open(file_name, "w+") as txt_file:
+    with open(file_name, "w+", encoding="utf-8") as txt_file:
         txt_file.write(header + "\n")
-        for v in data:
-            # txt_file.write(f"Объект {v[0]}\t| timecode: {str([q for q in v[1]])}\n")
-            txt_file.write(f'Чёрный кадр с {v[0]:.3f} сек. по {v[1]:.3f} сек. (длительность {v[2]:.3f} сек.)')
+        if 'black-farme' in header:
+            for d in data:
+                for i in d:
+                    txt_file.write(f'Чёрный кадр с {i[0]:.3f} сек. по {i[1]:.3f} сек. (длительность {i[2]:.3f} сек.)')
+        else:
+            for v in data:
+                txt_file.write(f"Объект {v[0]}\t| timecode: {str([q for q in v[1]])}\n")
 
 
 def create_result_file(data: Any, weight_file_name: Any, video_file_name: Any) -> None:
-    csv_file_name = str(weight_file_name).replace('.pt', ' ') + str(datetime.now())[:19].replace(' ', ' ').replace(':', '') + ".csv"
+    csv_file_name = str(weight_file_name).replace('.pt', ' ') + str(datetime.now())[:19].replace(' ', ' ').replace(':', '') + ".txt"
     header_name = f"{str(datetime.now())[:19]} | {str(weight_file_name).replace('.pt', '')} | {str(video_file_name).replace('.', '')}"
-    # try:
-    #     create_csv('runs/detect/predict/' + csv_file_name, header_name, data)
-    # except FileNotFoundError:
-    #     create_csv(csv_file_name, header_name, data)
     try:
         create_txt('runs/detect/predict/' + csv_file_name, header_name, data)
     except FileNotFoundError:
         create_txt(csv_file_name, header_name, data)
 
 
-@logger.catch
 def async_f2t(video_path):
     global frames_queue
 
@@ -80,6 +70,7 @@ def async_f2t(video_path):
     if process.returncode != 0:
         stderr = process.stderr.read()
         raise Exception(f'Error while executing ffprobe: {stderr.decode()}')
+
 
 def parse_yoloput(line):
     if not line.startswith('video ') or not line.endswith('s') or ':' not in line:
