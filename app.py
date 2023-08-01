@@ -60,6 +60,7 @@ def non_interactive_ui(args: Any) -> dict:
     print("-" * 111)
 
     return {
+        "interactive": args.input,
         "target_video": target_video,
         "weight_file": weight_file,
         "save_csv": save_csv,
@@ -132,6 +133,7 @@ def interactive_ui(args: Any) -> dict:
     print("-" * 111)
 
     return {
+        "interactive": args.input,
         "target_video": target_video,
         "weight_file": weight_files_choice,
         "save_csv": save_csv,
@@ -146,11 +148,9 @@ def interactive_ui(args: Any) -> dict:
 
 
 def pre_detection(params: dict) -> None:
-    try:
-        if len(params['weight_files_choice']) == 0:
-            results = run_detection(params['target_video'], params['weight_file'], params['save_csv'], params['save_video'], params['verbose']                      
-                                   )
-        else:
+    # pprint(params)
+    if params['interactive']:
+        try:
             with Manager() as process_manager:
                 quantity_processes = len(params['weight_files_choice'])
                 proc_list = []
@@ -192,11 +192,20 @@ def pre_detection(params: dict) -> None:
                         p_printer.start()
                     queue.put(None)
                     p_printer.join()
-    except FileNotFoundError as er:
-        print("Неверно указаны файлы весов!")
-        print(er)
-        exit(0) 
-    
+        except FileNotFoundError as er:
+            print("Неверно указаны файлы весов!")
+            print(er)
+            exit(0)
+    else:
+        queue = None
+        quantity_processes = None
+        final_results = None
+        info_container = None
+        process = 0
+        one_weight_result = run_detection(
+            params['target_video'], params['weight_file'], params['save_csv'], params['save_video'], params['verbose'],
+            queue, quantity_processes, final_results, info_container, process,
+        )
 
 if __name__ == "__main__":
 
@@ -205,7 +214,7 @@ if __name__ == "__main__":
         description='Консольный интерфейс детектирования проблем на выбранном видеофрагменте',
     )
 
-    parser.add_argument('-i', '--input', dest='input', required=False, help='Интерактивный режим ввода', default=True, action=argparse.BooleanOptionalAction)
+    parser.add_argument('-i', '--input', dest='input', required=False, help='Интерактивный режим ввода', default=False, action=argparse.BooleanOptionalAction)
     parser.add_argument('-c', '--save_csv', dest='save_csv', action='store_true', required=False, default=False, help='Сохранение результатов в csv файл')
     parser.add_argument('-s', '--save_video', dest='save_video', action='store_true', required=False, help='Сохранение видео с результатами работы')
     parser.add_argument('-t', '--target_video', metavar='target_video', required=False, help='Путь к видео для обработки')

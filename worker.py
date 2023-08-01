@@ -64,11 +64,11 @@ def async_f2t(video_path):
             frame = -1
 
     process.wait()
-    frames_queue.task_done()
+    # frames_queue.task_done()
 
     if process.returncode != 0:
         stderr = process.stderr.read()
-        raise Exception(f'Error while executing ffprobe: {stderr.decode()}')
+        raise Exception(f'Error while executing ffprobe: {stderr}')
 
 
 def parse_yoloput(line):
@@ -188,8 +188,10 @@ def worker_parser(target_video, weight_file, save_csv, save_video, verbose, queu
                     output = f"{', '.join(list(classes.keys()))} | Текущий прогресс: {'{:.2f}'.format(100 * curpos / int(res['total_amount']))}% " + \
                                 f"{res['current_pos']}/{res['total_amount']} | " + \
                                 f"Осталось: ~{remaining_time_str} | " + \
-                                f"Кадр распознан за {res['processing_time']} {res['detected_objs']}                          "
-                    
+                                f"Кадр распознан за {res['processing_time']} {res['detected_objs']}                         "
+                    if queue is None:
+                        print(output, end='\r')
+
                     info_dict['progress'] = '{:.2f}'.format(100 * curpos / int(res['total_amount']))
                     info_dict['remaining_time'] = remaining_time_str
                     info_dict['recognized_for'] = res['processing_time']
@@ -221,6 +223,7 @@ def run_detection(*args):
     global frames_dict
     thread = threading.Thread(target=async_f2t, args=(args[0],))
     thread.start()
+    result = ''
     try:
         result = worker_parser(*args)
     except Exception as e:

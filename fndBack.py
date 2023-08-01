@@ -40,9 +40,9 @@ def black_frame_detect_with_multiprocess(video_path, weight_file, save_csv, save
     process_lock = Lock()
     info_dict = {
         "process": process_number,
-        "object": 'black-frame',
+        "object": "['black-frame']",
         "progress": "",
-        "remaining_time": "~",
+        "remaining_time": "",
         "recognized_for": "~",
         "process_completed": False,
     }
