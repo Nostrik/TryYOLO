@@ -21,24 +21,36 @@ frames_dict = {}
 frames_queue = queue.Queue()
 
 
-def create_txt(file_name, header, data):
-    with open(file_name, "w+", encoding="utf-8") as txt_file:
-        txt_file.write(header + "\n")
-        if 'black' in header:
+def create_txt(file_name, header, data, target_folder):
+    # with open(file_name, "w+", encoding="utf-8") as txt_file:
+    #     txt_file.write(header + "\n")
+    #     if 'black' in header:
+    #         for i in data:
+    #             txt_file.write(f'Чёрный кадр с {i[0]:.3f} сек. по {i[1]:.3f} сек. (длительность {i[2]:.3f} сек.)\n')
+    #     else:
+    #         for v in data:
+    #             txt_file.write(f"Объект {v[0]}\t| timecode: {str([q for q in v[1]])}\n")
+
+    if 'black' in header:
+        file_path = os.path.join(target_folder, file_name)
+        with open(file_path, "w+", encoding="utf-8") as txt_file:
+            txt_file.write(header + "\n")
             for i in data:
                 txt_file.write(f'Чёрный кадр с {i[0]:.3f} сек. по {i[1]:.3f} сек. (длительность {i[2]:.3f} сек.)\n')
-        else:
+    else:
+        with open(file_name, "w+", encoding="utf-8") as txt_file:
+            txt_file.write(header + "\n")
             for v in data:
                 txt_file.write(f"Объект {v[0]}\t| timecode: {str([q for q in v[1]])}\n")
 
 
-def create_result_file(data: Any, weight_file_name: Any, video_file_name: Any) -> None:
+def create_result_file(data: Any, weight_file_name: Any, video_file_name: Any, target_folder) -> None:
     csv_file_name = str(weight_file_name).replace('.pt', ' ') + str(datetime.now())[:19].replace(' ', ' ').replace(':', '') + ".txt"
     header_name = f"{str(datetime.now())[:19]} | {str(weight_file_name).replace('.pt', '')} | {str(video_file_name).replace('.', '')}"
     try:
-        create_txt('runs/detect/predict/' + csv_file_name, header_name, data)
+        create_txt('runs/detect/predict/' + csv_file_name, header_name, data, target_folder)
     except FileNotFoundError:
-        create_txt(csv_file_name, header_name, data)
+        create_txt(csv_file_name, header_name, data, target_folder)
 
 
 def async_f2t(video_path):
@@ -138,7 +150,7 @@ async def giveMeLine(cur_frame, detected_objs, classes, res):
     for i in temp_list:
         res_buffer[i]=[cur_frame]
 
-def worker_parser(target_video, weight_file, save_csv, save_video, verbose, queue=None, quantity_processes=None, final_results=None, info_container=None, process_number=0):
+def worker_parser(target_video, weight_file, save_csv, save_video, verbose, queue=None, quantity_processes=None, final_results=None, info_container=None, process_number=0, target_folder=''):
     global frames_dict
     global output_listing
 
@@ -214,7 +226,7 @@ def worker_parser(target_video, weight_file, save_csv, save_video, verbose, queu
     print(Style.RESET_ALL)
 
     if save_csv:
-        create_result_file(data=output_listing, weight_file_name=weight_file, video_file_name=target_video)
+        create_result_file(data=output_listing, weight_file_name=weight_file, video_file_name=target_video, target_folder=target_folder)
 
     return output_listing
 

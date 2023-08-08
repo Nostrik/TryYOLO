@@ -143,6 +143,7 @@ def interactive_ui(args: Any) -> dict:
 
     return {
         "interactive": args.input,
+        "target_folder": target_folder,
         "target_video": target_video,
         "weight_file": weight_files_choice,
         "save_csv": save_csv,
@@ -191,7 +192,7 @@ def pre_detection(params: dict) -> None:
                     else:
                         p = Process(target=black_frame_detect_with_multiprocess, args=(
                             params['target_video'], params['weight_files'][int(i_weight_choice) - 1], params['save_csv'], params['save_video'], params['verbose'],
-                            queue, quantity_processes, final_results, info_container, i_process,
+                            queue, quantity_processes, final_results, info_container, i_process, params['target_folder'],
                             ))
                         proc_list.append(p)
                         p.start()

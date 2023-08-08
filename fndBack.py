@@ -27,7 +27,7 @@ def test_cuda():
         return True
 
 
-def black_frame_detect_with_multiprocess(video_path, weight_file, save_csv, save_video, verbose, queue=None, quantity_processes=None, final_results=None, info_container=None, process_number=0):
+def black_frame_detect_with_multiprocess(video_path, weight_file, save_csv, save_video, verbose, queue=None, quantity_processes=None, final_results=None, info_container=None, process_number=0, target_folder=''):
     command = ['ffmpeg', '-i',  video_path, '-filter_complex', 'blackdetect=d=0.1:pix_th=0.05', '-f', 'null', '-']
 
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
@@ -87,7 +87,7 @@ def black_frame_detect_with_multiprocess(video_path, weight_file, save_csv, save
         except Exception:
             pass
     if save_csv:
-        create_result_file(data=bf, weight_file_name='black-frame.pt', video_file_name=video_path)
+        create_result_file(data=bf, weight_file_name='black-frame.pt', video_file_name=video_path, target_folder=target_folder)
 
 
 # q1 = black_frame_detect_with_multiprocess("C:\\Users\\Maxim\\tv-21-app\\tv21-app-rep2\\input\\Shitfest.mp4", )
