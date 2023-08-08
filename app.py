@@ -22,6 +22,15 @@ class MyParser(argparse.ArgumentParser):
         sys.exit(2)
 
 
+class ArgsParam:
+    input=True, 
+    save_csv=True, 
+    save_video=False, 
+    target_video=None, 
+    verbose=False, 
+    weights=None
+
+
 def print_disclaimer() -> None:
     print("-" * 111)
     print(disclaimer)
@@ -89,7 +98,7 @@ def interactive_ui(args: Any) -> dict:
 
     try:
         print("-" * 111)
-        target_folder = input("Укажите каталог с данными: ")
+        target_folder = input("Укажите каталог с данными: ").replace('\r','')
         print("-" * 111)
         file_list = [os.path.join(target_folder, f) for f in os.listdir(target_folder) if f.endswith(".pt")]
         Black_frame_name_path = os.path.join(target_folder, black_frame_name)
@@ -209,23 +218,26 @@ def pre_detection(params: dict) -> None:
 
 if __name__ == "__main__":
 
-    parser = MyParser(
-        prog='Video-Content-Inspector',
-        description='Консольный интерфейс детектирования проблем на выбранном видеофрагменте',
-    )
+    # parser = MyParser(
+    #     prog='Video-Content-Inspector',
+    #     description='Консольный интерфейс детектирования проблем на выбранном видеофрагменте',
+    # )
 
-    parser.add_argument('-i', '--input', dest='input', required=False, help='Интерактивный режим ввода', default=False, action=argparse.BooleanOptionalAction)
-    parser.add_argument('-c', '--save_csv', dest='save_csv', action='store_true', required=False, default=False, help='Сохранение результатов в csv файл')
-    parser.add_argument('-s', '--save_video', dest='save_video', action='store_true', required=False, help='Сохранение видео с результатами работы')
-    parser.add_argument('-t', '--target_video', metavar='target_video', required=False, help='Путь к видео для обработки')
-    parser.add_argument('-v', '--verbose', dest='verbose', action='store_true', required=False, help='debug option')
-    parser.add_argument('-w', '--weights',metavar='weights', required=False, help='Путь к каталогу с файлами весов')
+    # parser.add_argument('-i', '--input', dest='input', required=False, help='Интерактивный режим ввода', default=True, action=argparse.BooleanOptionalAction)
+    # parser.add_argument('-c', '--save_csv', dest='save_csv', action='store_true', required=False, default=True, help='Сохранение результатов в csv файл')
+    # parser.add_argument('-s', '--save_video', dest='save_video', action='store_true', required=False, help='Сохранение видео с результатами работы')
+    # parser.add_argument('-t', '--target_video', metavar='target_video', required=False, help='Путь к видео для обработки')
+    # parser.add_argument('-v', '--verbose', dest='verbose', action='store_true', required=False, help='debug option')
+    # parser.add_argument('-w', '--weights',metavar='weights', required=False, help='Путь к каталогу с файлами весов')
 
-    args = parser.parse_args()
+    # args = parser.parse_args()
 
-    if not args.input:
-        run_params = non_interactive_ui(args)
-    else:
-        run_params = interactive_ui(args)
+    # if not args.input:
+    #     run_params = non_interactive_ui(args)
+    # else:
+    #     run_params = interactive_ui(args)
+    
+    args = ArgsParam()
+    run_params = interactive_ui(args)
 
     pre_detection(run_params)

@@ -14,6 +14,7 @@ COPY fndBack.py /app/
 RUN apt-get update --fix-missing
 RUN apt-get install -y ffmpeg
 RUN pip install colorama
+RUN pip install loguru
 RUN rm -rf /var/lib/apt/lists/* 
 
 ENTRYPOINT [ "python", "app.py" ]
