@@ -7,6 +7,7 @@ from typing import Any
 from multiprocessing import Process, Manager, Lock, Queue
 import sys
 from fndBack import black_frame_detect_with_multiprocess
+from check_torch import check_torch
 from loguru import logger
 from pprint import pprint
 
@@ -238,6 +239,8 @@ if __name__ == "__main__":
     # else:
     #     run_params = interactive_ui(args)
     
+    ch = check_torch()
+    print(f"check_torch: {ch}")
     args = ArgsParam()
     run_params = interactive_ui(args)
 
