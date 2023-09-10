@@ -1,5 +1,3 @@
-# from ultralytics import YOLO
-# from ultralytics.models import YOLO
 from ultralytics.models.yolo import YOLO
 import argparse
 import subprocess
@@ -12,18 +10,18 @@ parser.add_argument('-s', '--save_video', dest='save_video', action=argparse.Boo
 parser.add_argument('-w', '--weight_file', type=str, help='Путь к файлу с весами', required=True)
 
 args = parser.parse_args()
-# model = YOLO(args.weight_file)
+model = YOLO(args.weight_file)
 
-# results = model.predict(source=args.target_video
-#         , save = bool(args.save_video)
-#         , save_txt = bool(args.save_csv)
-#         , exist_ok = True
-# )
-print(
-    f"model={args.weight_file}\n" +
-    f"source={args.target_video}\n" + 
-    f"save={args.save_video}\n"
+results = model.predict(source=args.target_video
+        , save = bool(args.save_video)
+        , save_txt = bool(args.save_csv)
+        , exist_ok = True
 )
-results = subprocess.Popen(
-    ["yolo", "predict", f"model={args.weight_file}", f"source={args.target_video}"], shell=True, stderr=subprocess.STDOUT
-    )
+print(
+    f"weight_file={args.weight_file}\n" +
+    f"target_video={args.target_video}\n" + 
+    f"save_video={args.save_video}\n"
+)
+# results = subprocess.Popen(
+#     ["yolo", "predict", f"model={args.weight_file}", f"source={args.target_video}"], shell=True, stderr=subprocess.STDOUT
+#     )
