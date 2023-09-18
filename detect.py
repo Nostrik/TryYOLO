@@ -1,4 +1,5 @@
-from ultralytics.models import YOLO
+# from ultralytics.models.yolo import YOLO
+from ultralytics import YOLO
 import argparse
 import subprocess
 
