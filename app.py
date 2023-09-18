@@ -239,8 +239,9 @@ if __name__ == "__main__":
     # else:
     #     run_params = interactive_ui(args)
     
+    print("-" * 20)
     ch = check_torch()
-    print(f"check_torch: {ch}")
+    print(f"check_CUDA: {ch}")
     args = ArgsParam()
     run_params = interactive_ui(args)
 

@@ -6,5 +6,5 @@ def check_torch():
     return check
 
 
-if __name__ == "__main__":
-    print(check_torch())
+# if __name__ == "__main__":
+#     print(check_torch())
