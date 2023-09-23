@@ -17,12 +17,13 @@ RUN apt-get install -y --no-install-recommends ffmpeg
 RUN pip install colorama --no-cache-dir
 RUN pip install loguru --no-cache-dir
 
-# RUN apt-get update && apt-get install -y --no-install-recommends \
-#     cuda-compiler-10-2 \
-#     cuda-libraries-dev-10-2 \
-#     cuda-nvcc-10-2 \
-#     libcudnn7=7.6.5.32-1+cuda10.2 \
-#     libcudnn7-dev=7.6.5.32-1+cuda10.2
+RUN apt-get -y install curl
+
+# RUN distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+# RUN curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
+# RUN curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+
+RUN apt-get install -y nvidia-container-toolkit
 
 RUN rm -rf /var/lib/apt/lists/* 
 
