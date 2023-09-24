@@ -1,31 +1,31 @@
-FROM ultralytics/ultralytics:latest-python
-# FROM python:latest
+FROM nvidia/cuda:12.2.0-runtime-ubuntu22.04
 LABEL maintainer="max"
-ENV PYTHONUNBUFFERED 1
 
+#install python
+RUN apt update
+RUN apt-get install -y python3 python3-pip
+
+#create workdir
 WORKDIR /app
 RUN mkdir files
 
+#install app
 COPY app.py /app/
 COPY worker.py /app/
 COPY frame2timecode.py /app/
 COPY fndBack.py /app/
 COPY check_torch.py /app/
 
+#install requirements
 RUN apt-get update --fix-missing --no-install-recommends
 RUN apt-get install -y --no-install-recommends ffmpeg
 RUN pip install colorama --no-cache-dir
 RUN pip install loguru --no-cache-dir
-
-RUN apt-get -y install curl
-
-# RUN distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
-# RUN curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
-# RUN curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
-
-RUN apt-get install -y nvidia-container-toolkit
+RUN pip install ultralytics
 
 RUN rm -rf /var/lib/apt/lists/* 
 
-ENTRYPOINT [ "python", "app.py" ]
+ENTRYPOINT [ "nvidia-smi" ]
+
+#ENTRYPOINT [ "python3", "app.py" ]
 # ENTRYPOINT [ "python ", "check_torch.py" ]
