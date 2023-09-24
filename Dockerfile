@@ -17,6 +17,7 @@ COPY fndBack.py /app/
 COPY check_torch.py /app/
 
 #install requirements
+RUN pip install --upgrade pip
 RUN apt-get update --fix-missing --no-install-recommends
 RUN apt-get install -y --no-install-recommends ffmpeg
 RUN pip install colorama --no-cache-dir
