@@ -23,9 +23,10 @@ RUN pip install colorama --no-cache-dir
 RUN pip install loguru --no-cache-dir
 RUN pip install ultralytics
 
+#install pytorch
+RUN pip install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu121
+
 RUN rm -rf /var/lib/apt/lists/* 
 
-ENTRYPOINT [ "nvidia-smi" ]
-
-#ENTRYPOINT [ "python3", "app.py" ]
+ENTRYPOINT [ "python3", "app.py" ]
 # ENTRYPOINT [ "python ", "check_torch.py" ]
