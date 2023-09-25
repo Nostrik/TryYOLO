@@ -4,8 +4,10 @@ docker container run -i -t -v .\input:/app/files -v .\output:/app/runs/detect/pr
 
 docker image rm cli-util-dockworker
 
+docker run -i -v C:\Users\Maxim\tv-21-app\my-tv21-app\input:/app/files --gpus all dockworker-cuda
 
-docker run -i -v C:\Users\Maxim\tv-21-app\tv21-app-rep\input:/app/files --rm cli-util-dockworker
 
-docker run -i -v C:\Users\Maxim\tv-21-app\tv21-app-rep\input:/app/files -v C:\Users\Maxim\tv-21-app\tv21-app-rep\output:/app/runs/detect/predict  --rm cli-util-dockworker -c -s
+@REM docker run -i -v C:\Users\Maxim\tv-21-app\tv21-app-rep\input:/app/files --rm cli-util-dockworker
+
+@REM docker run -i -v C:\Users\Maxim\tv-21-app\tv21-app-rep\input:/app/files -v C:\Users\Maxim\tv-21-app\tv21-app-rep\output:/app/runs/detect/predict  --rm cli-util-dockworker -c -s
 
