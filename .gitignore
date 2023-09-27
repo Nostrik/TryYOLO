@@ -7,6 +7,7 @@ __pycache__
 *.csv
 .venv/
 .venv2/
+.venv-for-vci
 .idea
 runs/*.*
 runs/
