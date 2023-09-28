@@ -1,13 +1,9 @@
+version: '3'
 services:
-  test:
-    image: nvidia/cuda:12.2.0-runtime-ubuntu22.04
-    command: nvidia-smi
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
-  app:
-    image: cli-util-dockworker
+  myapp:
+    image: dockworker-cuda
+    stdin_open: true
+    tty: true
+    volumes:
+      - C:\Users\Maksim\tv-21-app\TryYOLO\input:\app\files
+    # runtime: nvidia
