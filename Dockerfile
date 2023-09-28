@@ -1,5 +1,7 @@
 FROM nvidia/cuda:12.2.0-runtime-ubuntu22.04
 LABEL maintainer="max"
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
 
 #install python
 RUN apt update

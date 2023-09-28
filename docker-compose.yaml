@@ -1,9 +1,9 @@
 version: '3'
 services:
-  myapp:
+  vci:
     image: dockworker-cuda
     stdin_open: true
     tty: true
     volumes:
-      - C:\Users\Maksim\tv-21-app\TryYOLO\input:\app\files
+      - C:/Users/Maksim/tv-21-app/TryYOLO/input:/app/files
     # runtime: nvidia
