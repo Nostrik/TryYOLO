@@ -15,22 +15,8 @@ class MyParser(argparse.ArgumentParser):
         sys.exit(2)
 
 
-def show_containers():
-    print("Show docker images..")
-    docker_client.images.list()
-
-
-def run_container(name_cont):
-    print(f"Start docker container ... {name_cont}")
-    docker_client.containers.run(name_cont)
-
-
 def main(args):
-    logger.debug(args)
-    if args.list_containers==True:
-        docker_client.containers.list()
-    else:
-        run_container(CONTAINER_NAME)
+    path_to_yaml_file = input("Укажите каталог с данными: ").replace('\r','')
 
 
 
@@ -41,7 +27,5 @@ if __name__ == "__main__":
     )
     parser.add_argument('-l', dest='list_containers', required=False, help='Show all docker images', action=argparse.BooleanOptionalAction)
     args = parser.parse_args()
-    try:
-        main(args)
-    except DockerException as error:
-        print(error)
+    main(args)
+

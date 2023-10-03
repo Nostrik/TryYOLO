@@ -1,4 +1,4 @@
-docker image build -t cli-util-dockworker .
+docker image build -t dockworker-cuda .
 
 docker container run -i -t -v .\input:/app/files -v .\output:/app/runs/detect/predict --rm cli-util-dockworker -t ad1.mkv -w cigar.pt -c -s
 
