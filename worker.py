@@ -227,10 +227,11 @@ def run_detection(*args):
     thread = threading.Thread(target=async_f2t, args=(args[0],))
     thread.start()
     result = ''
-    try:
-        result = worker_parser(*args)
-    except Exception as e:
-        print(f"line 244 {e}")
+    # try:
+    #     result = worker_parser(*args)
+    # except Exception as e:
+    #     print(f"line 244 {e}")
+    result = worker_parser(*args)
 
     thread.join()
 

@@ -24,7 +24,9 @@ RUN apt-get update --fix-missing --no-install-recommends
 RUN apt-get install -y --no-install-recommends ffmpeg
 RUN pip install colorama --no-cache-dir
 RUN pip install loguru --no-cache-dir
-RUN pip install ultralytics
+RUN pip install ultralytics --no-cache-dir
+RUN pip install torch --no-cache-dir
+# RUN pip install -r requirements.txt --no-cache-dir
 
 #install pytorch
 RUN pip install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu121

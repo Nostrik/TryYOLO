@@ -34,7 +34,6 @@ def run_docker_compose():
 
 
 def main(args):
-    logger.debug(args)
     run_docker_compose()
 
 
