@@ -1,11 +1,13 @@
 import argparse
 import sys
 import docker
+import subprocess
 from loguru import logger
 from docker.errors import DockerException
 
 docker_client = docker.from_env()
 CONTAINER_NAME = "hello world"
+DOCKER_COMPOSE_FILE = ''
 
 
 class MyParser(argparse.ArgumentParser):
@@ -15,22 +17,25 @@ class MyParser(argparse.ArgumentParser):
         sys.exit(2)
 
 
-def show_containers():
-    print("Show docker images..")
-    docker_client.images.list()
+def run_docker_compose():
+    try:
+        # Путь к файлу docker-compose.yml
+        compose_file_path = DOCKER_COMPOSE_FILE
 
+        # Команда для запуска docker-compose
+        command = ['docker-compose', 'run', '--service-ports', 'vci']
 
-def run_container(name_cont):
-    print(f"Start docker container ... {name_cont}")
-    docker_client.containers.run(name_cont)
+        # Запуск команды в терминале
+        subprocess.run(command, check=True)
+
+        print("Docker-compose приложение успешно запущено!")
+    except subprocess.CalledProcessError as e:
+        print("Ошибка при запуске docker-compose приложения:", e)
 
 
 def main(args):
     logger.debug(args)
-    if args.list_containers==True:
-        docker_client.containers.list()
-    else:
-        run_container(CONTAINER_NAME)
+    run_docker_compose()
 
 
 
@@ -41,7 +46,4 @@ if __name__ == "__main__":
     )
     parser.add_argument('-l', dest='list_containers', required=False, help='Show all docker images', action=argparse.BooleanOptionalAction)
     args = parser.parse_args()
-    try:
-        main(args)
-    except DockerException as error:
-        print(error)
+    main(args)
