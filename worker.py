@@ -13,6 +13,10 @@ from datetime import datetime
 from typing import Any
 from loguru import logger
 
+# from .func_expansion import frame_count_extract
+from func_expansion import frame_count_extract, transform_frames_to_time, remainig_progress
+
+
 some_sortof_res=dict()
 
 res_buffer=dict()
@@ -168,7 +172,11 @@ def worker_parser(target_video, weight_file, save_csv, save_video, verbose, queu
     info_container
     while True:
             output = process.stderr.readline().decode('utf-8')
-
+ 
+            current_frame, all_frames = frame_count_extract(output)
+            # print(f"all frames - {all_frames}, current frame - ({current_frame})")
+            print(transform_frames_to_time(current_frame), remainig_progress(current_frame, all_frames), "%")
+            
             if output == '' and process.poll() is not None:
                 print()
                 end_time = time.time()
