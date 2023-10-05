@@ -12,6 +12,13 @@ def frame_count_extract(line):
     return current_frame, all_frames
 
 
+def extract_values_from_line(line):
+    first_number = re.search(r"\((\d+)/\d+\)", string=line).group(1)
+    second_number = re.search(r"\(\d+/(\d+)\)", string=line).group(1)
+    value_in_brackets = re.search(r"\((.*?)\)", string=line).group(1)
+    value_before_ms = re.search(r"(\d+\.\d+)ms", string=line).group(1)
+
+
 def transform_frames_to_time(frame):
     if frame:
         frame_fl = float(frame)
