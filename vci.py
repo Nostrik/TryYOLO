@@ -1,14 +1,11 @@
 import argparse
 import sys
-import docker
 import subprocess
+import os
 from loguru import logger
-from docker.errors import DockerException
+from locale_text import lang_en, lang_ru
 
-docker_client = docker.from_env()
-CONTAINER_NAME = "hello world"
-DOCKER_COMPOSE_FILE = ''
-
+dictionary = lang_en
 
 class MyParser(argparse.ArgumentParser):
     def error(self, message):
@@ -17,31 +14,97 @@ class MyParser(argparse.ArgumentParser):
         sys.exit(2)
 
 
-def run_docker_compose():
+def show_main_phrases(key):
+    print(
+        dictionary['main_phrases'][0] + "\n" 
+        + "=" + dictionary['main_phrases'][key] + "=" + "\n" + dictionary['main_phrases'][0]
+        )
+
+
+def show_minor_phrases(key):
+    return dictionary['minor_phrases'][key]
+
+
+def main():
+
+    run_parameters = {
+        "videos": [],
+        "weigths": [],
+    }
+
+    show_main_phrases(1)
+
     try:
-        # Путь к файлу docker-compose.yml
-        compose_file_path = DOCKER_COMPOSE_FILE
+        weight_files = {}
+        video_files = {}
+        msg_for_input = show_minor_phrases(0)
+        target_folder = input(msg_for_input).replace('\r','')
+        file_list = [os.path.join(target_folder, f) for f in os.listdir(target_folder) if f.endswith(".pt")]
+        video_file_list = [os.path.join(target_folder, f) for f in os.listdir(target_folder) if f.endswith(".mp4")]
+        for i, w in enumerate(file_list):
+            weight_files[i] = w
+        for i, v in enumerate(video_file_list):
+            video_files[i] = v
+    except FileNotFoundError as er:
+        print(er)
+        exit(0)
 
-        # Команда для запуска docker-compose
-        command = ['docker-compose', 'run', '--service-ports', 'vci']
+    if video_files:
+        print(show_minor_phrases(1))
+        for i in video_files:
+            print(f"{i+1}:\t{video_files[i].replace(target_folder,'')}")
+    else:
+        print(show_minor_phrases(10))
+        exit(0)
 
-        # Запуск команды в терминале
-        subprocess.run(command, check=True)
+    try:
+        msg_for_input = show_minor_phrases(2)
+        video_files_input = input(msg_for_input)
+        video_files_choice = video_files_input.split(',')
+        target_video = video_files[int(video_files_choice[0]) - 1]
+    except KeyError as er:
+        print(show_minor_phrases(11))
+        exit(0)
 
-        print("Docker-compose приложение успешно запущено!")
-    except subprocess.CalledProcessError as e:
-        print("Ошибка при запуске docker-compose приложения:", e)
+    if weight_files:
+        print(show_minor_phrases(3))
+        for i in weight_files:
+            print(f"{i+1}:\t{weight_files[i].replace(target_folder,'').replace('.pt','')}")
+    else:
+        print(show_minor_phrases(12))
+        exit(0)
 
+    msg_for_input = show_minor_phrases(4)
+    weight_files_input = input(msg_for_input)
+    weight_files_choice = weight_files_input.split(',')
+    print()
+    show_main_phrases(2)
+    print(show_minor_phrases(5) + target_folder)
+    print(show_minor_phrases(6), end='')
+    try:
+        for i in video_files_choice:
+            print(video_files[int(i) - 1].replace(target_folder,''), end='; ')
+            run_parameters['videos'].append(video_files[int(i) - 1])
+        print()
+        print(show_minor_phrases(7), end='')
+        for i in weight_files_choice:
+            print(weight_files[int(i) - 1].replace(target_folder,''), end='; ')
+            run_parameters['weigths'].append(weight_files[int(i) - 1])
+        print()
+    except KeyError:
+        print(show_minor_phrases(13))
+        exit(0)
+    
+    msg_for_input = show_minor_phrases(8)
+    start_detection = input(msg_for_input)
 
-def main(args):
-    run_docker_compose()
+    logger.debug(run_parameters)
 
+    # logger.debug(target_folder)
+    # logger.debug(video_files)
+    # logger.debug(video_files_choice)
+    # logger.debug(weight_files)
+    # logger.debug(weight_files_choice)
 
 if __name__ == "__main__":
-    parser = MyParser(
-        prog="Custom Docker App",
-        description="custom app for flexible use docker engine"
-    )
-    parser.add_argument('-l', dest='list_containers', required=False, help='Show all docker images', action=argparse.BooleanOptionalAction)
-    args = parser.parse_args()
-    main(args)
+    main()
