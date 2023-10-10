@@ -70,12 +70,15 @@ class YoloNeuralNetwork(NeuralNetwork):
 
 
 class YoloV8Line(Line):
-    def __init__(self, yolo_line) -> None:
-        self.line = yolo_line
+    def __init__(self) -> None:
+        self.line = None
+        self.values = None
+
+    def update_values(self, new_line):
+        self.line = new_line
         self.values = self.extract_values()
 
     def extract_values(self):
-        self.line
         if not self.line.startswith('video ') or not self.line.endswith('s') or ':' not in self.line:
             return None
 
@@ -100,7 +103,8 @@ class YoloV8Line(Line):
 
     def get_current_position(self):
         if self.values:
-            return self.values['current_pos']
+            cur_pos = self.values['current_pos']
+            return cur_pos
             
     def get_total_amount(self):
         if self.values:
@@ -117,6 +121,7 @@ class YoloV8Line(Line):
 
 if __name__ == "__main__":
     yolo = YoloNeuralNetwork()
+    yolo_line = YoloV8Line()
     yolo.load_model('C:\\Users\Maxim\\tv-21-app\my-tv21-app\input\cigarette_18092023_911ep.pt')
     yolo.preprocess_input('C:\\Users\Maxim\\tv-21-app\\my-tv21-app\\input\\ad1.mp4')
     yolo.postprocess_output('C:\\Users\\Maxim\\tv-21-app\\my-tv21-app\\input')
@@ -125,5 +130,7 @@ if __name__ == "__main__":
     while True:
 
         output = process.stderr.readline().decode('utf-8')
-        # print(output, end='')
-        print(parse_string(output.strip()))
+        yolo_line.update_values(output.strip())
+        print(
+            f'{yolo_line.get_current_position()} | {yolo_line.get_total_amount()} | {yolo_line.get_getected_objects()} | {yolo_line.get_processing_time()}'
+            )
