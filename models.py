@@ -1,3 +1,4 @@
+import time
 import subprocess
 from abc import ABC, abstractclassmethod
 
@@ -54,7 +55,7 @@ class NWorker(ABC):
         pass
 
     @abstractclassmethod
-    def show_progress(self):
+    def show_progress_results(self):
         pass
 
 
@@ -62,6 +63,7 @@ class NWorkerYoloV8(NWorker):
     def __init__(self):
         self.netwok_model = None
         self.line_model = None
+        self.start_time = None
 
     def load_network_model(self, n_model):
         self.netwok_model = n_model
@@ -69,40 +71,53 @@ class NWorkerYoloV8(NWorker):
     def load_line_model(self, l_model):
         self.line_model = l_model
 
-    # def show_progress(self, current_pos, total_amount, detected_objects, processing_time):
-    #     progress = self.remainig_progress(current_pos, total_amount)
-    #     remaining_time = self.transform_frames_to_time(current_pos)
-    #     pt = self.line_model.get_processing_time()
-    #     print(
-    #         f"{self.netwok_model} | {progress} | {remaining_time} | {pt}", end='\r'
-    #     )
-    #     pass
-
-    def show_progress(self):
+    def show_progress_results(self):
         progress = self.remainig_progress(
             self.line_model.get_current_position(),
             self.line_model.get_total_amount()
         )
-        remaining_time = self.transform_frames_to_time(self.line_model.get_current_position())
-        processing_time = self.line_model.get_processing_time()
+        if self.line_model.get_current_position():
+            current_position = int(self.line_model.get_current_position())
+            elapsed_time = time.time() - self.start_time
+            avg_time_per_iteration = elapsed_time / current_position
+            remaining_time = avg_time_per_iteration * (int(self.line_model.get_total_amount()) -  current_position)
+            time_in_seconds_minutes_hours = self.transform_time(remaining_time)
+        else:
+            time_in_seconds_minutes_hours = None
+        if self.line_model.get_processing_time():
+            processing_time = self.line_model.get_processing_time()
+        else:
+            processing_time = None
         print(
-            f"{self.netwok_model} | {progress} | {remaining_time} | {processing_time}", end='\r'
+            f"{self.netwok_model} | {progress}% | {time_in_seconds_minutes_hours} | {processing_time}", end='\r'
         )
 
-    def transform_frames_to_time(self, frame):
-        if frame:
-            frame_fl = float(frame)
-            seconds = frame_fl // 24
-            minutes = seconds // 60
-            hours = minutes // 60
-            minutes %= 60
-            seconds %= 60
-            return [seconds, minutes, hours]
+    def set_start_time(self, start_time):
+        self.start_time = start_time
+
+    def transform_time(self, value):
+        # if value:
+        #     frame_fl = float(value)
+        #     seconds = frame_fl // 24
+        #     minutes = seconds // 60
+        #     hours = minutes // 60
+        #     minutes %= 60
+        #     seconds %= 60
+        #     return [seconds, minutes, hours]
+        if value:
+            if value < 60:
+                updt_value = f'{value:.0f} sec'
+            elif value < 3600:
+                updt_value = f'{value/60:.0f} min'
+            else:
+                updt_value = f'{value/3600:.0f} hours'
+            return updt_value
 
     def remainig_progress(self, cur_frm, all_frms):
         if cur_frm and all_frms:
             progress = (float(cur_frm) / float(all_frms)) * 100
-            return round(progress, 2)
+            result = round(progress, 0)
+            return str(result).replace('.0', '')
             
 
 
@@ -183,26 +198,21 @@ class YoloV8Line(Line):
 
 if __name__ == "__main__":
     yolo = YoloNeuralNetwork()
+    yolo.load_model('C:\\Users\Maxim\\tv-21-app\my-tv21-app\input\cigarette_18092023_911ep.pt')
+    yolo.preprocess_input('C:\\Users\Maxim\\tv-21-app\\my-tv21-app\\input\\ad1.mp4')
+    yolo.postprocess_output('C:\\Users\\Maxim\\tv-21-app\\my-tv21-app\\input')
     yolo_line = YoloV8Line()
+
     yolo_worker = NWorkerYoloV8()
     yolo_worker.load_network_model(yolo)
     yolo_worker.load_line_model(yolo_line)
-    # yolo.load_model('C:\\Users\Maxim\\tv-21-app\my-tv21-app\input\cigarette_18092023_911ep.pt')
-    # yolo.preprocess_input('C:\\Users\Maxim\\tv-21-app\\my-tv21-app\\input\\ad1.mp4')
-    # yolo.postprocess_output('C:\\Users\\Maxim\\tv-21-app\\my-tv21-app\\input')
-    yolo.load_model('C:\\Users\\Maksim\\tv-21-app\\TryYOLO\\input\\cigarette_911ep.pt')
-    yolo.preprocess_input('C:\\Users\\Maksim\\tv-21-app\\TryYOLO\\input\\ad1.mp4')
-    yolo.postprocess_output('C:\\Users\\Maksim\\tv-21-app\\TryYOLO\\input\\')
-    yolo.get_summary()
+    # yolo.load_model('C:\\Users\\Maksim\\tv-21-app\\TryYOLO\\input\\cigarette_911ep.pt')
+    # yolo.preprocess_input('C:\\Users\\Maksim\\tv-21-app\\TryYOLO\\input\\ad1.mp4')
+    # yolo.postprocess_output('C:\\Users\\Maksim\\tv-21-app\\TryYOLO\\input\\')
     process = yolo.run_predict()
+    yolo_worker.set_start_time(time.time())
     while True:
 
         output = process.stderr.readline().decode('utf-8')
         yolo_line.update_values(output.strip())
-        # if output:
-        #     print(output)
-        # print(
-        #     f'{yolo_line.get_current_position()} | {yolo_line.get_total_amount()} | {yolo_line.get_getected_objects()} | {yolo_line.get_processing_time()}'
-        #     )
-        yolo_worker.show_progress()
-        
+        yolo_worker.show_progress_results()
