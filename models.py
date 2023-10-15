@@ -60,9 +60,9 @@ class NWorker(ABC):
 
 
 class NWorkerYoloV8(NWorker):
-    def __init__(self, network_model):
+    def __init__(self, network_model, line_model):
         self.netwok_model = network_model
-        self.line_model = None
+        self.line_model = line_model
         self.start_time = None
 
     def load_network_model(self, n_model):
@@ -118,7 +118,12 @@ class NWorkerYoloV8(NWorker):
             progress = (float(cur_frm) / float(all_frms)) * 100
             result = round(progress, 0)
             return str(result).replace('.0', '')
-            
+        
+
+    def run_predict(self, start_time):
+        self.start_time = start_time
+        process = self.netwok_model.run_predict()
+        return process
 
 
 class YoloNeuralNetwork(NeuralNetwork):
@@ -202,12 +207,11 @@ def start_predcit(weigth_file, target_video):
         video_path=target_video
     )
     yolo_line = YoloV8Line()
-    yolo_worker = NWorker(
-        
+    yolo_worker = NWorkerYoloV8(
+        network_model=yolo,
+        line_model=yolo_line
     )
-    yolo_worker.load_line_model(yolo_line)
-    process = yolo.run_predict()
-    yolo_worker.set_start_time(time.time())
+    process = yolo_worker.run_predict(time.time())
     while True:
 
         output = process.stderr.readline().decode('utf-8')
@@ -221,15 +225,15 @@ if __name__ == "__main__":
     # yolo.preprocess_input('C:\\Users\Maxim\\tv-21-app\\my-tv21-app\\input\\ad1.mp4')
     # yolo.postprocess_output('C:\\Users\\Maxim\\tv-21-app\\my-tv21-app\\input')
 
-    load_model = 'C:\\Users\\Maksim\\tv-21-app\\TryYOLO\\input\\cigarette_911ep.pt'
-    preprocess_input = 'C:\\Users\\Maksim\\tv-21-app\\TryYOLO\\input\\ad1.mp4'
+    # load_model = 'C:\\Users\\Maksim\\tv-21-app\\TryYOLO\\input\\cigarette_911ep.pt'
+    # preprocess_input = 'C:\\Users\\Maksim\\tv-21-app\\TryYOLO\\input\\ad1.mp4'
 
     yolo = YoloNeuralNetwork(
         model_path='C:\\Users\\Maksim\\tv-21-app\\TryYOLO\\input\\cigarette_911ep.pt',
         video_path='C:\\Users\\Maksim\\tv-21-app\\TryYOLO\\input\\ad1.mp4'
     )
     yolo_line = YoloV8Line()
-    yolo_worker = NWorkerYoloV8()
+    yolo_worker = NWorkerYoloV8(yolo, yolo_line)
     yolo_worker.load_line_model(yolo_line)
     process = yolo.run_predict()
     yolo_worker.set_start_time(time.time())
@@ -238,3 +242,7 @@ if __name__ == "__main__":
         output = process.stderr.readline().decode('utf-8')
         yolo_line.update_values(output.strip())
         yolo_worker.show_progress_results()
+    # start_predcit(
+    #     weigth_file='C:\\Users\\Maksim\\tv-21-app\\TryYOLO\\input\\cigarette_911ep.pt',
+    #     target_video='C:\\Users\\Maksim\\tv-21-app\\TryYOLO\\input\\ad1.mp4',
+    # )
