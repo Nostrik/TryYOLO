@@ -5,7 +5,13 @@ import os
 from loguru import logger
 from locale_text import lang_en, lang_ru
 
+from models import start_predict
+
 dictionary = lang_en
+min_log_level = ["INFO", "DEBUG"]
+
+logger.remove()
+logger.add(sink=sys.stderr, level=min_log_level[0])
 
 class MyParser(argparse.ArgumentParser):
     def error(self, message):
@@ -105,6 +111,17 @@ def main():
     # logger.debug(video_files_choice)
     # logger.debug(weight_files)
     # logger.debug(weight_files_choice)
+
+    show_main_phrases(3)
+
+    print(f"\nProcessing for video: {run_parameters['videos'][0]}")
+
+    for weight in run_parameters['weigths']:
+        logger.debug(weight)
+        start_predict(
+            weigth_file=weight,
+            target_video=run_parameters['videos'][0]
+        )
 
 if __name__ == "__main__":
     main()
