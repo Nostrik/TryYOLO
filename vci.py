@@ -114,15 +114,15 @@ def main():
 
     show_main_phrases(3)
 
-    print(f"\nProcessing for video: {run_parameters['videos'][0]}")
-
-    for weight in run_parameters['weigths']:
-        logger.debug(weight)
-        start_predict(
-            weigth_file=weight,
-            target_video=run_parameters['videos'][0],
-            object_name=str(weight).replace(target_folder,''),
-        )
+    for video in run_parameters['videos']:
+        print(f"\nProcessing for video: {run_parameters['videos'][0]}")
+        for weight in run_parameters['weigths']:
+            logger.debug(weight)
+            start_predict(
+                weigth_file=weight,
+                target_video=video,
+                object_name=str(weight).replace(target_folder,''),
+            )
 
 if __name__ == "__main__":
     main()

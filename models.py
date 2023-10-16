@@ -94,7 +94,7 @@ class NWorkerYoloV8(NWorker):
         # )
         print(
             f"Object: {self.netwok_model.object_search} | Processing Time: {processing_time} | Progress: {progress} % | Remaining Time: {time_in_seconds_minutes_hours}", end='\r'
-        )   
+        )
 
     def set_start_time(self, start_time):
         self.start_time = start_time
