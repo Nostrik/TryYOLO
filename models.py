@@ -92,9 +92,8 @@ class NWorkerYoloV8(NWorker):
         # print(
         #     f"{self.netwok_model} | {progress}% | {time_in_seconds_minutes_hours} | {processing_time}", end='\r'
         # )
-
         print(
-            f"Object: {self.netwok_model} | Processing Time: {processing_time} | Progress: {progress} | Remaining Time: {time_in_seconds_minutes_hours}", end='\r'
+            f"Object: {self.netwok_model.object_search} | Processing Time: {processing_time} | Progress: {progress} % | Remaining Time: {time_in_seconds_minutes_hours}", end='\r'
         )   
 
     def set_start_time(self, start_time):
@@ -132,9 +131,10 @@ class NWorkerYoloV8(NWorker):
 
 
 class YoloNeuralNetwork(NeuralNetwork):
-    def __init__(self, model_path, video_path) -> None:
+    def __init__(self, model_path, video_path, obj_name) -> None:
         self.model = model_path
         self.video = video_path
+        self.object_search = obj_name
 
     def load_model(self, model_path):
         self.model = model_path
@@ -206,16 +206,17 @@ class YoloV8Line(Line):
             return self.values['processing_time']
         
 
-def start_predict(weigth_file, target_video):
+def start_predict(weigth_file, target_video, object_name):
     logger.debug(weigth_file, target_video)
     yolo = YoloNeuralNetwork(
         model_path=weigth_file,
-        video_path=target_video
+        video_path=target_video,
+        obj_name=object_name,
     )
     yolo_line = YoloV8Line()
     yolo_worker = NWorkerYoloV8(
         network_model=yolo,
-        line_model=yolo_line
+        line_model=yolo_line,
     )
     process = yolo_worker.run_predict(time.time())
     while True:

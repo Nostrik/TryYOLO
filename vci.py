@@ -120,7 +120,8 @@ def main():
         logger.debug(weight)
         start_predict(
             weigth_file=weight,
-            target_video=run_parameters['videos'][0]
+            target_video=run_parameters['videos'][0],
+            object_name=str(weight).replace(target_folder,''),
         )
 
 if __name__ == "__main__":
