@@ -115,7 +115,7 @@ def main():
     show_main_phrases(3)
 
     for video in run_parameters['videos']:
-        print(f"\nProcessing for video: {run_parameters['videos'][0]}")
+        print(f"\nProcessing for video: {video}")
         for weight in run_parameters['weigths']:
             logger.debug(weight)
             start_predict(
@@ -123,6 +123,7 @@ def main():
                 target_video=video,
                 object_name=str(weight).replace(target_folder,''),
             )
+    print()
 
 if __name__ == "__main__":
     main()

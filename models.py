@@ -95,19 +95,12 @@ class NWorkerYoloV8(NWorker):
         print(
             f"Object: {self.netwok_model.object_search} | Processing Time: {processing_time} | Progress: {progress} % | Remaining Time: {time_in_seconds_minutes_hours}", end='\r'
         )
+        return progress
 
     def set_start_time(self, start_time):
         self.start_time = start_time
 
     def transform_time(self, value):
-        # if value:
-        #     frame_fl = float(value)
-        #     seconds = frame_fl // 24
-        #     minutes = seconds // 60
-        #     hours = minutes // 60
-        #     minutes %= 60
-        #     seconds %= 60
-        #     return [seconds, minutes, hours]
         if value:
             if value < 60:
                 updt_value = f'{value:.0f} sec'
@@ -116,6 +109,16 @@ class NWorkerYoloV8(NWorker):
             else:
                 updt_value = f'{value/3600:.0f} hours'
             return updt_value
+        
+    def catch_time_frame(self, value):
+        if value:
+            frame_fl = float(value)
+            seconds = frame_fl // 24
+            minutes = seconds // 60
+            hours = minutes // 60
+            minutes %= 60
+            seconds %= 60
+            return [seconds, minutes, hours]
 
     def remainig_progress(self, cur_frm, all_frms):
         if cur_frm and all_frms:
@@ -123,7 +126,6 @@ class NWorkerYoloV8(NWorker):
             result = round(progress, 0)
             return str(result).replace('.0', '')
         
-
     def run_predict(self, start_time):
         self.start_time = start_time
         process = self.netwok_model.run_predict()
@@ -223,7 +225,10 @@ def start_predict(weigth_file, target_video, object_name):
 
         output = process.stderr.readline().decode('utf-8')
         yolo_line.update_values(output.strip())
-        yolo_worker.show_progress_results()
+        progress = yolo_worker.show_progress_results()
+        if progress:
+            if int(progress) >= 100:
+                break
 
 
 # if __name__ == "__main__":
@@ -253,3 +258,9 @@ def start_predict(weigth_file, target_video, object_name):
 #         weigth_file='C:\\Users\\Maksim\\tv-21-app\\TryYOLO\\input\\cigarette_911ep.pt',
 #         target_video='C:\\Users\\Maksim\\tv-21-app\\TryYOLO\\input\\ad1.mp4',
 #     )
+if __name__ == "__main__":
+    start_predict(
+        weigth_file='C:\\Users\Maxim\\tv-21-app\my-tv21-app\input\cigarette_18092023_911ep.pt',
+        target_video='C:\\Users\Maxim\\tv-21-app\\my-tv21-app\\input\\ad1.mp4',
+        object_name='test_run',
+    )
