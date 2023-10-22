@@ -61,6 +61,8 @@ class NWorker(ABC):
 
 
 class NWorkerYoloV8(NWorker):
+    out_listing = []
+
     def __init__(self, network_model, line_model):
         self.netwok_model = network_model
         self.line_model = line_model
@@ -89,13 +91,16 @@ class NWorkerYoloV8(NWorker):
             processing_time = self.line_model.get_processing_time()
         else:
             processing_time = None
-        # print(
-        #     f"{self.netwok_model} | {progress}% | {time_in_seconds_minutes_hours} | {processing_time}", end='\r'
-        # )
         print(
             f"Object: {self.netwok_model.object_search} | Processing Time: {processing_time} | Progress: {progress} % | Remaining Time: {time_in_seconds_minutes_hours}", end='\r'
         )
         return progress
+    
+    def catch_find_objects(self):
+        detected_obj_value_from_line = self.line_model.get_getected_objects()
+        if detected_obj_value_from_line != '(no detections)' and detected_obj_value_from_line is not None:
+            # self.update_listing(detected_obj_value_from_line)
+            self.update_listing([detected_obj_value_from_line, self.catch_time_frame(self.line_model.get_current_position())])
 
     def set_start_time(self, start_time):
         self.start_time = start_time
@@ -113,11 +118,13 @@ class NWorkerYoloV8(NWorker):
     def catch_time_frame(self, value):
         if value:
             frame_fl = float(value)
+            frame_num = frame_fl / 24
             seconds = frame_fl // 24
             minutes = seconds // 60
             hours = minutes // 60
             minutes %= 60
             seconds %= 60
+            frame_num %= 24
             return [seconds, minutes, hours]
 
     def remainig_progress(self, cur_frm, all_frms):
@@ -130,7 +137,16 @@ class NWorkerYoloV8(NWorker):
         self.start_time = start_time
         process = self.netwok_model.run_predict()
         return process
+    
+    @classmethod
+    def update_listing(cls, catch_info):
+        cls.out_listing.append(catch_info)
 
+    @classmethod
+    def take_output_results(cls):
+        results = cls.out_listing
+        for res in results:
+            print(res)
 
 class YoloNeuralNetwork(NeuralNetwork):
     def __init__(self, model_path, video_path, obj_name) -> None:
@@ -209,7 +225,7 @@ class YoloV8Line(Line):
         
 
 def start_predict(weigth_file, target_video, object_name):
-    logger.debug(weigth_file, target_video)
+    # logger.debug(weigth_file, target_video)
     yolo = YoloNeuralNetwork(
         model_path=weigth_file,
         video_path=target_video,
@@ -225,15 +241,18 @@ def start_predict(weigth_file, target_video, object_name):
 
         output = process.stderr.readline().decode('utf-8')
         yolo_line.update_values(output.strip())
+        yolo_worker.catch_find_objects()
         progress = yolo_worker.show_progress_results()
         if progress:
             if int(progress) >= 100:
                 break
+    print()
+    yolo_worker.take_output_results()
 
 
-# if __name__ == "__main__":
-#     start_predict(
-#         weigth_file='C:\\Users\Maxim\\tv-21-app\my-tv21-app\input\cigarette_18092023_911ep.pt',
-#         target_video='C:\\Users\Maxim\\tv-21-app\\my-tv21-app\\input\\ad1.mp4',
-#         object_name='test_run',
-#     )
+if __name__ == "__main__":
+    start_predict(
+        weigth_file='C:\\Users\Maxim\\tv-21-app\my-tv21-app\input\cigarette_18092023_911ep.pt',
+        target_video='C:\\Users\Maxim\\tv-21-app\\my-tv21-app\\input\\ad1.mp4',
+        object_name='test_run',
+    )
