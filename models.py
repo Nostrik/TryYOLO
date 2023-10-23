@@ -251,8 +251,13 @@ def start_predict(weigth_file, target_video, object_name):
 
 
 if __name__ == "__main__":
+    # start_predict(
+    #     weigth_file='C:\\Users\Maxim\\tv-21-app\my-tv21-app\input\cigarette_18092023_911ep.pt',
+    #     target_video='C:\\Users\Maxim\\tv-21-app\\my-tv21-app\\input\\ad1.mp4',
+    #     object_name='test_run',
+    # )
     start_predict(
-        weigth_file='C:\\Users\Maxim\\tv-21-app\my-tv21-app\input\cigarette_18092023_911ep.pt',
-        target_video='C:\\Users\Maxim\\tv-21-app\\my-tv21-app\\input\\ad1.mp4',
+        weigth_file='C:\\Users\Maksim\\tv-21-app\\TryYOLO\\input\\cigarette_6705ep.pt',
+        target_video='C:\\Users\Maksim\\tv-21-app\\TryYOLO\\input\\ad1.mp4',
         object_name='test_run',
     )
