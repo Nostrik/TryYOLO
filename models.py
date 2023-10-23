@@ -118,14 +118,12 @@ class NWorkerYoloV8(NWorker):
     def catch_time_frame(self, value):
         if value:
             frame_fl = float(value)
-            frame_num = frame_fl / 24
             seconds = frame_fl // 24
             minutes = seconds // 60
             hours = minutes // 60
             minutes %= 60
             seconds %= 60
-            frame_num %= 24
-            return [seconds, minutes, hours]
+            return [seconds, minutes, hours, value]
 
     def remainig_progress(self, cur_frm, all_frms):
         if cur_frm and all_frms:
@@ -251,13 +249,13 @@ def start_predict(weigth_file, target_video, object_name):
 
 
 if __name__ == "__main__":
-    # start_predict(
-    #     weigth_file='C:\\Users\Maxim\\tv-21-app\my-tv21-app\input\cigarette_18092023_911ep.pt',
-    #     target_video='C:\\Users\Maxim\\tv-21-app\\my-tv21-app\\input\\ad1.mp4',
-    #     object_name='test_run',
-    # )
     start_predict(
-        weigth_file='C:\\Users\Maksim\\tv-21-app\\TryYOLO\\input\\cigarette_6705ep.pt',
-        target_video='C:\\Users\Maksim\\tv-21-app\\TryYOLO\\input\\ad1.mp4',
+        weigth_file='C:\\Users\Maxim\\tv-21-app\my-tv21-app\input\cigarette_18092023_911ep.pt',
+        target_video='C:\\Users\Maxim\\tv-21-app\\my-tv21-app\\input\\ad1.mp4',
         object_name='test_run',
     )
+    # start_predict(
+    #     weigth_file='C:\\Users\Maksim\\tv-21-app\\TryYOLO\\input\\cigarette_6705ep.pt',
+    #     target_video='C:\\Users\Maksim\\tv-21-app\\TryYOLO\\input\\ad1.mp4',
+    #     object_name='test_run',
+    # )
