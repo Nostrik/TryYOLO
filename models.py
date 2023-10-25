@@ -3,7 +3,7 @@ import subprocess
 from abc import ABC, abstractclassmethod
 from loguru import logger
 
-from func_expansion import frame_count_extract, transform_frames_to_time, remainig_progress, parse_string
+from frame_temp import current_frame_to_single_frame
 
 
 class NeuralNetwork(ABC):
@@ -123,7 +123,7 @@ class NWorkerYoloV8(NWorker):
             hours = minutes // 60
             minutes %= 60
             seconds %= 60
-            return [seconds, minutes, hours, value]
+            return [seconds, minutes, hours, current_frame_to_single_frame(value)]
 
     def remainig_progress(self, cur_frm, all_frms):
         if cur_frm and all_frms:
