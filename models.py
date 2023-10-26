@@ -1,7 +1,9 @@
+import os
 import time
 import subprocess
 from abc import ABC, abstractclassmethod
 from loguru import logger
+from datetime import datetime
 
 from frame_temp import current_frame_to_single_frame
 
@@ -136,6 +138,12 @@ class NWorkerYoloV8(NWorker):
         process = self.netwok_model.run_predict()
         return process
     
+    def generate_path(self, weight_f, target_v):
+        weight_f_path = os.path.dirname(weight_f)
+        target_v_path = os.path.dirname(target_v)
+        path = os.path.join(weight_f_path, target_v_path)
+        return path
+    
     @classmethod
     def update_listing(cls, catch_info):
         cls.out_listing.append(catch_info)
@@ -145,6 +153,31 @@ class NWorkerYoloV8(NWorker):
         results = cls.out_listing
         for res in results:
             print(res)
+
+    @classmethod
+    def create_result_file(cls, weigth_file, target_video, object_name):
+        txt_file_name = str(object_name).replace('.pt', ' ') + str(datetime.now())[:19].replace(' ', ' ').replace(':', '') + ".txt"
+        header_name = f"{str(datetime.now())[:19]} | {str(weigth_file).replace('.pt', '')} | {str(target_video).replace('.', '')}"
+        target_folder = os.path.join(
+            os.path.dirname(weigth_file),
+            os.path.dirname(target_video)
+        )
+        if 'black' in header_name:
+            file_path = os.path.join(target_folder, txt_file_name)
+            with open(file_path, "w+", encoding="utf-8") as txt_file:
+                txt_file.write(header_name + "\n")
+                for i in cls.out_listing:
+                    txt_file.write(f'Чёрный кадр с {i[0]:.3f} сек. по {i[1]:.3f} сек. (длительность {i[2]:.3f} сек.)\n')
+        else:
+            count_srtings = 0
+            with open(txt_file_name, "w+", encoding="utf-8") as txt_file:
+                txt_file.write(header_name + "\n")
+                for v in cls.out_listing:
+                    # txt_file.write(f"Объект {v[0]}\t| timecode: {str([q for q in v[1]])}\n")
+                    txt_file.write(f"{v[0]}, [{v[1][0]} sec | {v[1][1]} min | {v[1][2]} hour | {v[1][3]} frame]\n")
+                    count_srtings += 1
+                txt_file.write(f"cnt: {count_srtings}")    
+
 
 class YoloNeuralNetwork(NeuralNetwork):
     def __init__(self, model_path, video_path, obj_name) -> None:
@@ -245,7 +278,8 @@ def start_predict(weigth_file, target_video, object_name):
             if int(progress) >= 100:
                 break
     print()
-    yolo_worker.take_output_results()
+    # yolo_worker.take_output_results()
+    yolo_worker.create_result_file(weigth_file, target_video, object_name)
 
 
 if __name__ == "__main__":
