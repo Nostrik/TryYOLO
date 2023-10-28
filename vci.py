@@ -3,9 +3,11 @@ import sys
 import subprocess
 import os
 from loguru import logger
-from locale_text import lang_en, lang_ru
+from multiprocessing import Process, Manager
 
-from models import start_predict
+from locale_text import lang_en, lang_ru
+from core import start_predict
+from models import for_multiproicessing
 
 dictionary = lang_en
 min_log_level = ["INFO", "DEBUG"]
@@ -118,11 +120,12 @@ def main():
         print(f"\nProcessing for video: {video}")
         for weight in run_parameters['weigths']:
             logger.debug(weight)
-            start_predict(
-                weigth_file=weight,
-                target_video=video,
-                object_name=str(weight).replace(target_folder,''),
-            )
+            # start_predict(
+            #     weigth_file=weight,
+            #     target_video=video,
+            #     object_name=str(weight).replace(target_folder,''),
+            # )
+            
     print()
 
 if __name__ == "__main__":
