@@ -7,7 +7,7 @@ from multiprocessing import Process, Manager
 
 from locale_text import lang_en, lang_ru
 from core import start_predict
-from models import for_multiproicessing
+# from models import for_multiproicessing
 
 dictionary = lang_en
 min_log_level = ["INFO", "DEBUG"]
@@ -88,15 +88,15 @@ def main():
     print()
     show_main_phrases(2)
     print(show_minor_phrases(5) + target_folder)
-    print(show_minor_phrases(6), end='')
+    print(show_minor_phrases(6), end='') #  Order of video files
     try:
         for i in video_files_choice:
             print(video_files[int(i) - 1].replace(target_folder,''), end='; ')
             run_parameters['videos'].append(video_files[int(i) - 1])
         print()
-        print(show_minor_phrases(7), end='')
+        print(show_minor_phrases(7), end='') #  Selected weight files
         for i in weight_files_choice:
-            print(weight_files[int(i) - 1].replace(target_folder,''), end='; ')
+            print(weight_files[int(i) - 1].replace(target_folder,''), end=';\n')
             run_parameters['weigths'].append(weight_files[int(i) - 1])
         print()
     except KeyError:
@@ -120,11 +120,11 @@ def main():
         print(f"\nProcessing for video: {video}")
         for weight in run_parameters['weigths']:
             logger.debug(weight)
-            # start_predict(
-            #     weigth_file=weight,
-            #     target_video=video,
-            #     object_name=str(weight).replace(target_folder,''),
-            # )
+            start_predict(
+                weigth_file=weight,
+                target_video=video,
+                object_name=str(weight).replace(target_folder,''),
+            )
             
     print()
 

@@ -1,11 +1,13 @@
 import os
 import time
 import subprocess
+import queue
 from loguru import logger
 from datetime import datetime
+from multiprocessing import Lock
 
-from models import NeuralNetwork, NWorker, Line
-from models import for_multiproicessing
+from models import NeuralNetwork, NWorker, Line, OutPutter
+# from models import for_multiproicessing
 from frame_temp import current_frame_to_single_frame
 
 
@@ -43,16 +45,20 @@ class NWorkerYoloV8(NWorker):
         print(
             f"Object: {self.netwok_model.object_search} | Processing Time: {processing_time} | Progress: {progress} % | Remaining Time: {time_in_seconds_minutes_hours}", end='\r'
         )
-        return progress
+        return self.netwok_model.object_search, processing_time, progress, time_in_seconds_minutes_hours
     
-    def catch_find_objects(self):
+    def catch_find_objects(self, all):
         detected_obj_value_from_line = self.line_model.get_getected_objects()
-        if detected_obj_value_from_line != '(no detections)' and detected_obj_value_from_line is not None:
-            # self.update_listing(detected_obj_value_from_line)
+        if all and detected_obj_value_from_line is not None:
             self.update_listing([detected_obj_value_from_line, self.catch_time_frame(self.line_model.get_current_position())])
+        else:
+            if detected_obj_value_from_line != '(no detections)' and detected_obj_value_from_line is not None:
+                # self.update_listing(detected_obj_value_from_line)
+                self.update_listing([detected_obj_value_from_line, self.catch_time_frame(self.line_model.get_current_position())])
+
 
     def set_start_time(self, start_time):
-        self.start_time = start_time
+            self.start_time = start_time
 
     def transform_time(self, value):
         if value:
@@ -72,7 +78,7 @@ class NWorkerYoloV8(NWorker):
             hours = minutes // 60
             minutes %= 60
             seconds %= 60
-            return [seconds, minutes, hours, current_frame_to_single_frame(value)]
+            return [seconds, minutes, hours, current_frame_to_single_frame(value), value]
 
     def remainig_progress(self, cur_frm, all_frms):
         if cur_frm and all_frms:
@@ -91,19 +97,17 @@ class NWorkerYoloV8(NWorker):
         path = os.path.join(weight_f_path, target_v_path)
         return path
     
-    @classmethod
-    def update_listing(cls, catch_info):
-        cls.out_listing.append(catch_info)
+    def update_listing(self, catch_info):
+        self.out_listing.append(catch_info)
 
-    @classmethod
-    def take_output_results(cls):
-        results = cls.out_listing
+    def take_output_results(self):
+        results = self.out_listing
         for res in results:
             print(res)
 
-    @classmethod
-    def create_result_file(cls, weigth_file, target_video, object_name):
-        txt_file_name = str(object_name).replace('.pt', ' ') + str(datetime.now())[:19].replace(' ', ' ').replace(':', '') + ".txt"
+    def create_result_file(self, weigth_file, target_video, object_name):
+        cnt = str(len(self.out_listing))
+        txt_file_name = cnt + ' ' + str(object_name).replace('.pt', ' ').replace('\\', '') + str(datetime.now())[:19].replace(' ', ' ').replace(':', '') + ".txt"
         header_name = f"{str(datetime.now())[:19]} | {str(weigth_file).replace('.pt', '')} | {str(target_video).replace('.', '')}"
         target_folder = os.path.join(
             os.path.dirname(weigth_file),
@@ -113,15 +117,15 @@ class NWorkerYoloV8(NWorker):
             file_path = os.path.join(target_folder, txt_file_name)
             with open(file_path, "w+", encoding="utf-8") as txt_file:
                 txt_file.write(header_name + "\n")
-                for i in cls.out_listing:
+                for i in self.out_listing:
                     txt_file.write(f'Чёрный кадр с {i[0]:.3f} сек. по {i[1]:.3f} сек. (длительность {i[2]:.3f} сек.)\n')
         else:
             count_srtings = 0
             with open(txt_file_name, "w+", encoding="utf-8") as txt_file:
                 txt_file.write(header_name + "\n")
-                for v in cls.out_listing:
+                for v in self.out_listing:
                     # txt_file.write(f"Объект {v[0]}\t| timecode: {str([q for q in v[1]])}\n")
-                    txt_file.write(f"{v[0]}, [{v[1][0]} sec | {v[1][1]} min | {v[1][2]} hour | {v[1][3]} frame]\n")
+                    txt_file.write(f"{v[0]}, [{v[1][0]} sec | {v[1][1]} min | {v[1][2]} hour | {v[1][3]} frame ({v[1][4]})]\n")
                     count_srtings += 1
                 txt_file.write(f"cnt: {count_srtings}")    
 
@@ -202,9 +206,43 @@ class YoloV8Line(Line):
             return self.values['processing_time']
         
 
-@for_multiproicessing(*args)
-def start_predict(weigth_file, target_video, object_name):
+class TerminalOutputter(OutPutter):
+    cursor_up = lambda lines: '\x1b[{0}A'.format(lines)
+
+    @classmethod
+    def run_outputter(cls, quantity_processes, info_container):
+        time.sleep(17)
+        continue_output = True
+        while continue_output:
+            output = ""
+            completed_list = []
+            sorted_info_containers = sorted(info_container, key=lambda x: x['processes'])
+            for info_dict in sorted_info_containers:
+                output += f"Object: {info_dict['object']} | Processing Time: {info_dict['recognized_for']} | Progress: {info_dict['progress']} % | Remaining Time: {info_dict['time_in_seconds_minutes_hours']}"
+                output += '\n'
+                completed_list.append(info_dict['progress'])
+            print(output, end='\r')
+            if all(completed_list) >= 100:
+                continue_output = False
+            time.sleep(0.5)
+            print(cls.cursor_up(quantity_processes + 1))
+
+
+def start_predict(
+        weigth_file, target_video, object_name, queue=None, quantity_processes=None, final_results=None, info_container=None, process_number=0, target_folder=''
+        ):
     # logger.debug(weigth_file, target_video)
+    process_lock = Lock()
+    info_dict = {
+        "process": process_number,
+        "object": object_name,
+        "progress": "",
+        "remaining_time": "",
+        "recognized_for": "",
+        "process_completed": False,
+    }
+    info_container
+
     yolo = YoloNeuralNetwork(
         model_path=weigth_file,
         video_path=target_video,
@@ -220,20 +258,34 @@ def start_predict(weigth_file, target_video, object_name):
 
         output = process.stderr.readline().decode('utf-8')
         yolo_line.update_values(output.strip())
-        yolo_worker.catch_find_objects()
+        yolo_worker.catch_find_objects(all=False)
         progress = yolo_worker.show_progress_results()
+        object_search, processing_time, progress, time_in_seconds_minutes_hours = yolo_worker.show_progress_results()
+        info_dict['progress'] = progress
+        info_dict['remaining_time'] = time_in_seconds_minutes_hours
+        info_dict['recognized_for'] = processing_time
+        # with process_lock:
+        #     try:
+        #         info_container[process_number] = info_dict
+        #     except Exception as er:
+        #         print(f"core:line 269:er {er}")
+        # try:
+        #     queue.put(process_number, info_container)
+        # except Exception as er:
+        #     print(f"core:line 273:er {er}")
+
         if progress:
             if int(progress) >= 100:
                 break
     print()
-    yolo_worker.take_output_results()
-    # yolo_worker.create_result_file(weigth_file, target_video, object_name)
+    # yolo_worker.take_output_results()
+    yolo_worker.create_result_file(weigth_file, target_video, object_name)
 
 
 # if __name__ == "__main__":
 #     start_predict(
-#         weigth_file='C:\\Users\Maxim\\tv-21-app\my-tv21-app\input\cigarette_18092023_911ep.pt',
-#         target_video='C:\\Users\Maxim\\tv-21-app\\my-tv21-app\\input\\ad1.mp4',
+#         weigth_file='C:\\Users\Maxim\\tv-21-app\my-tv21-app\input\syringe.pt',
+#         target_video='C:\\Users\Maxim\\tv-21-app\\my-tv21-app\\input\\5.mp4',
 #         object_name='test_run',
 #     )
     # start_predict(

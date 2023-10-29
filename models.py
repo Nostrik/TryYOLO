@@ -57,15 +57,6 @@ class NWorker(ABC):
 
 class OutPutter(ABC):
     @abstractclassmethod
-    def send_to_terminal(self):
+    def run_outputter(self):
         pass
-    
 
-def for_multiproicessing(queue=None, quantity_processes=None, final_results=None, info_container=None, process_number=0):
-    def decorator(func):
-        def wrapper(*args, **kwargs):
-            pass
-            result = func(*args, **kwargs)
-            return result
-        return wrapper
-    return decorator

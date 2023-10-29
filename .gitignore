@@ -14,5 +14,7 @@ runs/
 ffprobe.exe
 ffmpeg.exe
 input
+input2
+materials
 output
 venv/
