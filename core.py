@@ -53,7 +53,6 @@ class NWorkerYoloV8(NWorker):
             self.update_listing([detected_obj_value_from_line, self.catch_time_frame(self.line_model.get_current_position())])
         else:
             if detected_obj_value_from_line != '(no detections)' and detected_obj_value_from_line is not None:
-                # self.update_listing(detected_obj_value_from_line)
                 self.update_listing([detected_obj_value_from_line, self.catch_time_frame(self.line_model.get_current_position())])
 
 
@@ -99,6 +98,9 @@ class NWorkerYoloV8(NWorker):
     
     def update_listing(self, catch_info):
         self.out_listing.append(catch_info)
+
+    def reset_listing(self):
+        self.out_listing = []
 
     def take_output_results(self):
         results = self.out_listing
@@ -208,15 +210,21 @@ class YoloV8Line(Line):
 
 class TerminalOutputter(OutPutter):
     cursor_up = lambda lines: '\x1b[{0}A'.format(lines)
+    quantity_processes = None
+    info_container = None
+
+    def __init__(self, quantity_processes, info_container) -> None:
+        self.quantity_processes = quantity_processes
+        self.info_container = info_container
 
     @classmethod
-    def run_outputter(cls, quantity_processes, info_container):
+    def run_outputter(cls):
         time.sleep(17)
         continue_output = True
         while continue_output:
             output = ""
             completed_list = []
-            sorted_info_containers = sorted(info_container, key=lambda x: x['processes'])
+            sorted_info_containers = sorted(cls.info_container, key=lambda x: x['processes'])
             for info_dict in sorted_info_containers:
                 output += f"Object: {info_dict['object']} | Processing Time: {info_dict['recognized_for']} | Progress: {info_dict['progress']} % | Remaining Time: {info_dict['time_in_seconds_minutes_hours']}"
                 output += '\n'
@@ -225,7 +233,7 @@ class TerminalOutputter(OutPutter):
             if all(completed_list) >= 100:
                 continue_output = False
             time.sleep(0.5)
-            print(cls.cursor_up(quantity_processes + 1))
+            print(cls.cursor_up(cls.quantity_processes + 1))
 
 
 def start_predict(
@@ -254,6 +262,7 @@ def start_predict(
         line_model=yolo_line,
     )
     process = yolo_worker.run_predict(time.time())
+    yolo_worker.reset_listing()
     while True:
 
         output = process.stderr.readline().decode('utf-8')
@@ -264,15 +273,15 @@ def start_predict(
         info_dict['progress'] = progress
         info_dict['remaining_time'] = time_in_seconds_minutes_hours
         info_dict['recognized_for'] = processing_time
-        # with process_lock:
-        #     try:
-        #         info_container[process_number] = info_dict
-        #     except Exception as er:
-        #         print(f"core:line 269:er {er}")
-        # try:
-        #     queue.put(process_number, info_container)
-        # except Exception as er:
-        #     print(f"core:line 273:er {er}")
+        with process_lock:
+            try:
+                info_container[process_number] = info_dict
+            except Exception as er:
+                print(f"core:line 269:er {er}")
+        try:
+            queue.put(process_number, info_container)
+        except Exception as er:
+            print(f"core:line 273:er {er}")
 
         if progress:
             if int(progress) >= 100:
