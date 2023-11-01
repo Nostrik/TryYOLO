@@ -6,7 +6,7 @@ from loguru import logger
 from multiprocessing import Process, Manager
 
 from locale_text import lang_en, lang_ru
-from core import TerminalOutputter, start_predict, terminal_printer
+from core import start_predict, terminal_printer
 # from models import for_multiproicessing
 
 dictionary = lang_en
@@ -140,12 +140,10 @@ def main():
                         "progress": "",
                         "remaining_time": "",
                         "recognized_for": "",
-                        "process_complited": False,
+                        "process_completed": False,
                     }
                     info_container.append(info_dict)
                 quene = process_manager.Queue()
-                # outputter = TerminalOutputter(quantity_processes, info_container)
-                # p_printer = Process(target=outputter.run_outputter, args=())
                 p_printer = Process(target=terminal_printer, args=(quantity_processes, info_container))
                 for i_process, i_weigth_file in enumerate(run_parameters['weigths']):
                     p = Process(
@@ -168,6 +166,7 @@ def main():
                         p_printer.start()
                     quene.put(None)
                     p_printer.join()
+            print()
         except FileNotFoundError as er:
             print("Неверно указаны файлы весов")
             print(er)

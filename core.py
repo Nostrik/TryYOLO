@@ -6,7 +6,7 @@ from loguru import logger
 from datetime import datetime
 from multiprocessing import Lock
 
-from models import NeuralNetwork, NWorker, Line, OutPutter
+from models import NeuralNetwork, NWorker, Line
 # from models import for_multiproicessing
 from frame_temp import current_frame_to_single_frame
 
@@ -206,34 +206,6 @@ class YoloV8Line(Line):
     def get_processing_time(self):
         if self.values:
             return self.values['processing_time']
-        
-
-class TerminalOutputter(OutPutter):
-    cursor_up = lambda lines: '\x1b[{0}A'.format(lines)
-    quantity_processes = None
-    info_container = None
-
-    def __init__(self, quantity_processes, info_container) -> None:
-        self.quantity_processes = quantity_processes
-        self.info_container = info_container
-
-    @classmethod
-    def run_outputter(cls):
-        time.sleep(1) # wait yolo process
-        continue_output = True
-        while continue_output:
-            output = ""
-            completed_list = []
-            sorted_info_containers = sorted(cls.info_container, key=lambda x: x['processes'])
-            for info_dict in sorted_info_containers:
-                output += f"Object: {info_dict['object']} | Processing Time: {info_dict['recognized_for']} | Progress: {info_dict['progress']} % | Remaining Time: {info_dict['time_in_seconds_minutes_hours']}"
-                output += '\n'
-                completed_list.append(info_dict['progress'])
-            print(output, end='\r')
-            if all(completed_list) >= 100:
-                continue_output = False
-            time.sleep(0.5)
-            print(cls.cursor_up(cls.quantity_processes + 1))
 
 
 def terminal_printer(quantity_processes, info_container):
@@ -244,6 +216,7 @@ def terminal_printer(quantity_processes, info_container):
         output = ""
         completed_list = []
         sorted_info_container = sorted(info_container, key=lambda x: x["process"])
+        logger.debug(sorted_info_container)
         for info_dict in sorted_info_container:
             # output += f"{info_dict['object']} | Текущий прогресс: {info_dict['progress']}% | Осталось: ~ {info_dict['remaining_time']} | Кадр распознан за: {info_dict['recognized_for']}"
             output += f"Object: {info_dict['object']} | Processing Time: {info_dict['recognized_for']} | Progress: {info_dict['progress']} % | Remaining Time: {info_dict['remaining_time']}"
@@ -259,7 +232,7 @@ def terminal_printer(quantity_processes, info_container):
 def start_predict(
         weigth_file, target_video, object_name, queue=None, quantity_processes=None, final_results=None, info_container=None, process_number=0, target_folder=''
         ):
-    # logger.debug(weigth_file, target_video)
+    logger.debug(weigth_file, target_video)
     process_lock = Lock()
     info_dict = {
         "process": process_number,

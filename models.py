@@ -53,10 +53,3 @@ class NWorker(ABC):
     @abstractclassmethod
     def show_progress_results(self):
         pass
-
-
-class OutPutter(ABC):
-    @abstractclassmethod
-    def run_outputter(self):
-        pass
-
