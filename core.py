@@ -219,13 +219,18 @@ def terminal_printer(quantity_processes, info_container):
         logger.debug(sorted_info_container)
         for info_dict in sorted_info_container:
             # output += f"{info_dict['object']} | Текущий прогресс: {info_dict['progress']}% | Осталось: ~ {info_dict['remaining_time']} | Кадр распознан за: {info_dict['recognized_for']}"
-            output += f"Object: {info_dict['object']} | Processing Time: {info_dict['recognized_for']} | Progress: {info_dict['progress']} % | Remaining Time: {info_dict['remaining_time']}"
-            output += '\n'
+            if info_dict['process_completed'] == False:
+                # output += f"Object: {info_dict['object']} | Processing Time: {info_dict['recognized_for']} | Progress: {info_dict['progress']} % | Remaining Time: {info_dict['remaining_time']}"
+                output += f"Object: {info_dict['object']} | Progress: {info_dict['progress']} % | Remaining Time: {info_dict['remaining_time']} | Processing Time: {info_dict['recognized_for']}"
+                output += '\n'
+            if info_dict['process_completed'] == True:
+                quantity_processes -= 1
             completed_list.append(info_dict['process_completed'])
         print(output, end='\r')
         if all(completed_list):
             continue_output = False
-        time.sleep(0.5)
+            break
+        time.sleep(0.2)
         print(cursor_up(quantity_processes + 1))
 
 
