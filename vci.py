@@ -7,7 +7,7 @@ from multiprocessing import Process, Manager
 
 from locale_text import lang_en, lang_ru
 from core import start_predict, terminal_printer
-# from models import for_multiproicessing
+from black_finder import black_frame_detect_with_multiprocess
 
 dictionary = lang_en
 min_log_level = ["INFO", "DEBUG"]
@@ -39,7 +39,6 @@ def main():
         "videos": [],
         "weigths": [],
     }
-
     show_main_phrases(1)
 
     try:
@@ -48,6 +47,7 @@ def main():
         msg_for_input = show_minor_phrases(0)
         target_folder = input(msg_for_input).replace('\r','')
         file_list = [os.path.join(target_folder, f) for f in os.listdir(target_folder) if f.endswith(".pt")]
+        file_list.append("\\black-frame")
         video_file_list = [os.path.join(target_folder, f) for f in os.listdir(target_folder) if f.endswith(".mp4")]
         for i, w in enumerate(file_list):
             weight_files[i] = w
@@ -89,6 +89,7 @@ def main():
     show_main_phrases(2)
     print(show_minor_phrases(5) + target_folder)
     print(show_minor_phrases(6), end='') #  Order of video files
+    logger.debug(run_parameters)
     try:
         for i in video_files_choice:
             print(video_files[int(i) - 1].replace(target_folder,''), end='; ')
@@ -99,6 +100,7 @@ def main():
             print(weight_files[int(i) - 1].replace(target_folder,''), end=';\n')
             run_parameters['weigths'].append(weight_files[int(i) - 1])
         print()
+        logger.debug(run_parameters)
     except KeyError:
         print(show_minor_phrases(13))
         exit(0)
@@ -108,23 +110,10 @@ def main():
 
     logger.debug(run_parameters)
 
-    # logger.debug(target_folder)
-    # logger.debug(video_files)
-    # logger.debug(video_files_choice)
-    # logger.debug(weight_files)
-    # logger.debug(weight_files_choice)
-
     show_main_phrases(3)
 
     for video in run_parameters['videos']:
         print(f"\nProcessing for video: {video}")
-        # for weight in run_parameters['weigths']:
-        #     logger.debug(weight)
-            # start_predict(
-            #     weigth_file=weight,
-            #     target_video=video,
-            #     object_name=str(weight).replace(target_folder,''),
-            # )
         try:
             with Manager() as process_manager:
                 quantity_processes = len(run_parameters['weigths'])
@@ -146,6 +135,20 @@ def main():
                 quene = process_manager.Queue()
                 p_printer = Process(target=terminal_printer, args=(quantity_processes, info_container))
                 for i_process, i_weigth_file in enumerate(run_parameters['weigths']):
+                    if i_weigth_file == "\\black-frame":
+                        p = Process(
+                                target=black_frame_detect_with_multiprocess, args=(
+                                i_weigth_file,
+                                video,
+                                str(i_weigth_file).replace(target_folder,''),
+                                quene,
+                                quantity_processes,
+                                final_results,
+                                info_container,
+                                i_process,
+                                target_folder,
+                            )
+                        )
                     p = Process(
                         target=start_predict, args=(
                             i_weigth_file, 

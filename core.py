@@ -43,9 +43,6 @@ class NWorkerYoloV8(NWorker):
             processing_time = self.line_model.get_processing_time()
         else:
             processing_time = None
-        # print(
-        #     f"Object: {self.netwok_model.object_search} | Processing Time: {processing_time} | Progress: {progress} % | Remaining Time: {time_in_seconds_minutes_hours}", end='\r'
-        # )
         return self.netwok_model.object_search, processing_time, progress, time_in_seconds_minutes_hours
     
     def catch_find_objects(self, all):
@@ -124,11 +121,9 @@ class NWorkerYoloV8(NWorker):
                     txt_file.write(f'Чёрный кадр с {i[0]:.3f} сек. по {i[1]:.3f} сек. (длительность {i[2]:.3f} сек.)\n')
         else:
             count_srtings = 0
-            # with open(txt_file_name, "w+", encoding="utf-8") as txt_file:
             with open(os.path.join(current_folder, txt_file_name), "w+", encoding="utf-8") as txt_file:
                 txt_file.write(header_name + "\n")
                 for v in self.out_listing:
-                    # txt_file.write(f"Объект {v[0]}\t| timecode: {str([q for q in v[1]])}\n")
                     txt_file.write(f"{v[0]}, [{v[1][0]} sec | {v[1][1]} min | {v[1][2]} hour | {v[1][3]} frame ({v[1][4]})]\n")
                     count_srtings += 1
                 txt_file.write(f"cnt: {count_srtings}")    
@@ -287,16 +282,3 @@ def start_predict(
             print(f"core:line 273:er {er}")
     # yolo_worker.take_output_results()
     yolo_worker.create_result_file(weigth_file, target_video, object_name, target_folder)
-
-
-# if __name__ == "__main__":
-#     start_predict(
-#         weigth_file='C:\\Users\Maxim\\tv-21-app\my-tv21-app\input\syringe.pt',
-#         target_video='C:\\Users\Maxim\\tv-21-app\\my-tv21-app\\input\\5.mp4',
-#         object_name='test_run',
-#     )
-    # start_predict(
-    #     weigth_file='C:\\Users\Maksim\\tv-21-app\\TryYOLO\\input\\cigarette_6705ep.pt',
-    #     target_video='C:\\Users\Maksim\\tv-21-app\\TryYOLO\\input\\ad1.mp4',
-    #     object_name='test_run',
-    # )
