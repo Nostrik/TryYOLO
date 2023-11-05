@@ -1,7 +1,8 @@
 import os
 import time
 import subprocess
-import queue
+import random
+from pprint import pprint
 from loguru import logger
 from datetime import datetime
 from multiprocessing import Lock
@@ -107,7 +108,7 @@ class NWorkerYoloV8(NWorker):
         for res in results:
             print(res)
 
-    def create_result_file(self, weigth_file, target_video, object_name):
+    def create_result_file(self, weigth_file, target_video, object_name, current_folder):
         cnt = str(len(self.out_listing))
         txt_file_name = cnt + ' ' + str(object_name).replace('.pt', ' ').replace('\\', '') + str(datetime.now())[:19].replace(' ', ' ').replace(':', '') + ".txt"
         header_name = f"{str(datetime.now())[:19]} | {str(weigth_file).replace('.pt', '')} | {str(target_video).replace('.', '')}"
@@ -123,7 +124,8 @@ class NWorkerYoloV8(NWorker):
                     txt_file.write(f'Чёрный кадр с {i[0]:.3f} сек. по {i[1]:.3f} сек. (длительность {i[2]:.3f} сек.)\n')
         else:
             count_srtings = 0
-            with open(txt_file_name, "w+", encoding="utf-8") as txt_file:
+            # with open(txt_file_name, "w+", encoding="utf-8") as txt_file:
+            with open(os.path.join(current_folder, txt_file_name), "w+", encoding="utf-8") as txt_file:
                 txt_file.write(header_name + "\n")
                 for v in self.out_listing:
                     # txt_file.write(f"Объект {v[0]}\t| timecode: {str([q for q in v[1]])}\n")
@@ -218,20 +220,18 @@ def terminal_printer(quantity_processes, info_container):
         sorted_info_container = sorted(info_container, key=lambda x: x["process"])
         logger.debug(sorted_info_container)
         for info_dict in sorted_info_container:
-            # output += f"{info_dict['object']} | Текущий прогресс: {info_dict['progress']}% | Осталось: ~ {info_dict['remaining_time']} | Кадр распознан за: {info_dict['recognized_for']}"
-            if info_dict['process_completed'] == False:
-                # output += f"Object: {info_dict['object']} | Processing Time: {info_dict['recognized_for']} | Progress: {info_dict['progress']} % | Remaining Time: {info_dict['remaining_time']}"
-                output += f"Object: {info_dict['object']} | Progress: {info_dict['progress']} % | Remaining Time: {info_dict['remaining_time']} | Processing Time: {info_dict['recognized_for']}"
-                output += '\n'
-            if info_dict['process_completed'] == True:
-                quantity_processes -= 1
+            output += f"Object: {info_dict['object']} | Progress: {info_dict['progress']} % | Remaining Time: {info_dict['remaining_time']} | Processing Time: {info_dict['recognized_for']}"
+            output += '\n'
             completed_list.append(info_dict['process_completed'])
         print(output, end='\r')
+        logger.debug(len(sorted_info_container))
+        logger.debug(output)
         if all(completed_list):
             continue_output = False
             break
         time.sleep(0.2)
         print(cursor_up(quantity_processes + 1))
+
 
 
 def start_predict(
@@ -261,8 +261,8 @@ def start_predict(
     )
     process = yolo_worker.run_predict(time.time())
     yolo_worker.reset_listing()
-    process_stop = True
-    while process_stop:
+    process_cont = True
+    while process_cont:
 
         output = process.stderr.readline().decode('utf-8')
         yolo_line.update_values(output.strip())
@@ -272,11 +272,10 @@ def start_predict(
         info_dict['progress'] = progress
         info_dict['remaining_time'] = time_in_seconds_minutes_hours
         info_dict['recognized_for'] = processing_time
-        # if info_container:
         if progress:
             if int(progress) >= 100:
                 info_dict['process_completed'] = True
-                process_stop = False
+                process_cont = False
         with process_lock:
             try:
                 info_container[process_number] = info_dict
@@ -286,9 +285,8 @@ def start_predict(
             queue.put(process_number, info_container)
         except Exception as er:
             print(f"core:line 273:er {er}")
-    print()
     # yolo_worker.take_output_results()
-    # yolo_worker.create_result_file(weigth_file, target_video, object_name)
+    yolo_worker.create_result_file(weigth_file, target_video, object_name, target_folder)
 
 
 # if __name__ == "__main__":

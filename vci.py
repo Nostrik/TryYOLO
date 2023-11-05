@@ -156,6 +156,7 @@ def main():
                             final_results,
                             info_container,
                             i_process,
+                            target_folder,
                         )
                     )
                     proc_list.append(p)
