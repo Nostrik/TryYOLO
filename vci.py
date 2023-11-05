@@ -13,7 +13,7 @@ dictionary = lang_en
 min_log_level = ["INFO", "DEBUG"]
 
 logger.remove()
-logger.add(sink=sys.stderr, level=min_log_level[0])
+logger.add(sink=sys.stderr, level=min_log_level[1], format="<blue>{level}</blue> | <green>{function}</green> : <green>{line}</green> | <yellow>{message}</yellow>")
 
 class MyParser(argparse.ArgumentParser):
     def error(self, message):
@@ -135,6 +135,7 @@ def main():
                 quene = process_manager.Queue()
                 p_printer = Process(target=terminal_printer, args=(quantity_processes, info_container))
                 for i_process, i_weigth_file in enumerate(run_parameters['weigths']):
+                    logger.debug(video)
                     if i_weigth_file == "\\black-frame":
                         p = Process(
                                 target=black_frame_detect_with_multiprocess, args=(
@@ -149,6 +150,8 @@ def main():
                                 target_folder,
                             )
                         )
+                        proc_list.append(p)
+                        p.start()
                     p = Process(
                         target=start_predict, args=(
                             i_weigth_file, 

@@ -1,11 +1,17 @@
 import subprocess
 import re
+import sys
 from tqdm import tqdm
 from frame2timecode import f2t
 from frame2timecode import video_duration
 from worker import create_result_file
 from datetime import datetime
 from multiprocessing import Lock
+from loguru import logger
+
+logger.remove()
+min_log_level = ["INFO", "DEBUG"]
+logger.add(sink=sys.stderr, level=min_log_level[1], format="<blue>{level}</blue> | <green>{function}</green> : <green>{line}</green> | <yellow>{message}</yellow>")
 
 
 def test_cuda():
@@ -18,7 +24,7 @@ def test_cuda():
         return True
 
 
-def black_frame_detect_with_multiprocess(video_path, weight_file, queue=None, quantity_processes=None, final_results=None, info_container=None, process_number=0, target_folder=''):
+def black_frame_detect_with_multiprocess(video_path, weight_file=None, object_name=None, queue=None, quantity_processes=None, final_results=None, info_container=None, process_number=0, target_folder=''):
     command = ['ffmpeg', '-i',  video_path, '-filter_complex', 'blackdetect=d=0.1:pix_th=0.05', '-f', 'null', '-']
 
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
@@ -48,15 +54,15 @@ def black_frame_detect_with_multiprocess(video_path, weight_file, queue=None, qu
             match_fps = fps_pattern.match(line)
             if match_fps:
                 fps = float(match_fps.group(1))
-            match_time = time_pattern.match(line)
-            time_r = ''
+            match_time = time_pattern.match(line)           
             if match_time:
                 time_str = match_time.group(1)
                 time_dt = datetime.strptime(time_str, '%H:%M:%S.%f')
                 time_r = (time_dt - datetime(1900, 1, 1)).total_seconds()
             t_progress = round(time_r / total_t * 100, 1)
             info_dict['progress'] = str(t_progress)
-            if t_progress == 100:
+            logger.debug(t_progress)
+            if t_progress == 100: 
                 info_dict['process_completed'] = True
         else:
             match = re.search(r'black_start:([\d\.]+) black_end:([\d\.]+) black_duration:([\d\.]+)', line)
@@ -65,8 +71,8 @@ def black_frame_detect_with_multiprocess(video_path, weight_file, queue=None, qu
                 end = float(match.group(2))
                 duration = float(match.group(3))
                 bf+=[[start,end,duration]]
-        t_progress = str(round(time_r / total_t * 100, 1))
-        info_dict['progress'] = t_progress
+        # t_progress = str(round(time_r / total_t * 100, 1))
+        # info_dict['progress'] = t_progress
         info_dict['remaining_time'] = '~'
         with process_lock:
             try:
@@ -74,15 +80,16 @@ def black_frame_detect_with_multiprocess(video_path, weight_file, queue=None, qu
             except Exception as e:
                 # print(e)s
                 pass
+        logger.debug(info_dict)
         try:
             queue.put(process_number, info_container)
         except Exception:
             pass
-    create_result_file(data=bf, weight_file_name='black-frame.pt', video_file_name=video_path, target_folder=target_folder)
+        create_result_file(data=bf, weight_file_name='black-frame.pt', video_file_name=video_path, target_folder=target_folder)
 
 
 if __name__ == "__main__":
-    q1 = black_frame_detect_with_multiprocess("C:\\Users\\Maxim\\tv-21-app\\tv21-app-rep2\\input\\Shitfest.mp4", "black-frame")
+    q1 = black_frame_detect_with_multiprocess("C:\\Users\\Maksim\\tv-21-app\\TryYOLO\\input\\Shitfest.mp4")
     if q1:
         for i in q1:
             print(f'Чёрный кадр с {i[0]:.3f} сек. по {i[1]:.3f} сек. (длительность {i[2]:.3f} сек.)')
