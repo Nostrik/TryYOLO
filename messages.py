@@ -23,6 +23,11 @@ lang_en = {
         11: "\n" + "Incorrect video file specified!.." + "\n", 
         12: "\n" + "No weight files found!.." + "\n",
         13: "\n" + "incorrect input!.." + "\n",
+        14: "Incorrect weight files specified",
+
+        15: "Black frame",
+        16: "sec",
+        17: "duration",        
     },
     "dynamic_phrases": {
         0: "Progress: ",
@@ -58,6 +63,11 @@ lang_ru = {
         11: "\n" + "Указан неверный видеофайл!.." + "\n", 
         12: "\n" + "Файлы веса не найдены!.." + "\n",
         13: "\n" + "неправильный ввод!.." + "\n",
+        14: "Неверно указаны файлы весов",
+
+        15: "Чёрный кадр с",
+        16: "сек",
+        17: "длительность",
     },
     "dynamic_phrases": {
         0: "Прогресс: ",

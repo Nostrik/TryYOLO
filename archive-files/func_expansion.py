@@ -33,7 +33,6 @@ def parse_string(line):
     }
 
 
-
 def transform_frames_to_time(frame):
     if frame:
         frame_fl = float(frame)

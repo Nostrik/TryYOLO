@@ -1,13 +1,13 @@
 import subprocess
 import re
 import sys
-from tqdm import tqdm
-from frame2timecode import f2t
-from frame2timecode import video_duration
-from worker import create_result_file
+import os
 from datetime import datetime
 from multiprocessing import Lock
 from loguru import logger
+
+from loader import dictionary
+from frame2timecode import video_duration
 
 logger.remove()
 min_log_level = ["INFO", "DEBUG"]
@@ -22,9 +22,21 @@ def test_cuda():
         return True
     else:
         return True
+    
+
+def create_result_file(data, video_file_name, target_folder, object_name):
+    cnt = str(len(data))
+    txt_file_name = cnt + ' ' + str(object_name).replace('.pt', ' ').replace('\\', '') + str(datetime.now())[:19].replace(' ', ' ').replace(':', '') + ".txt"
+    header_name = f"{str(datetime.now())[:19]} | {str(object_name).replace('.pt', '')} | {str(video_file_name).replace('.', '')}"
+    file_path = os.path.join(target_folder, txt_file_name)
+    with open(file_path, "w+", encoding="utf-8") as txt_file:
+        txt_file.write(header_name + "\n")
+        for i in data:
+            # txt_file.write(f'Чёрный кадр с {i[0]:.3f} сек. - {i[1]:.3f} сек. (длительность {i[2]:.3f} сек.)\n')
+            txt_file.write(f"{dictionary['minor_phrases'][15]} {i[0]} {dictionary['minor_phrases'][16]}. - {i[1]} {dictionary['minor_phrases'][16]}. ({dictionary['minor_phrases'][17]} {i[2]:.3f} {dictionary['minor_phrases'][16]})\n")
 
 
-def black_frame_detect_with_multiprocess(video_path, weight_file=None, object_name=None, queue=None, quantity_processes=None, final_results=None, info_container=None, process_number=0, target_folder=''):
+def black_frame_detect_with_multiprocess(weight_file=None, video_path='', object_name=None, queue=None, quantity_processes=None, final_results=None, info_container=None, process_number=0, target_folder=''):
     command = ['ffmpeg', '-i',  video_path, '-filter_complex', 'blackdetect=d=0.1:pix_th=0.05', '-f', 'null', '-']
 
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
@@ -37,7 +49,7 @@ def black_frame_detect_with_multiprocess(video_path, weight_file=None, object_na
     process_lock = Lock()
     info_dict = {
         "process": process_number,
-        "object": "['black-frame']",
+        "object": "\\black-frame",
         "progress": "",
         "remaining_time": "",
         "recognized_for": "~",
@@ -85,11 +97,11 @@ def black_frame_detect_with_multiprocess(video_path, weight_file=None, object_na
             queue.put(process_number, info_container)
         except Exception:
             pass
-        create_result_file(data=bf, weight_file_name='black-frame.pt', video_file_name=video_path, target_folder=target_folder)
+    create_result_file(data=bf, video_file_name=video_path, target_folder=target_folder, object_name='black-frame')
 
 
-if __name__ == "__main__":
-    q1 = black_frame_detect_with_multiprocess("C:\\Users\\Maksim\\tv-21-app\\TryYOLO\\input\\Shitfest.mp4")
-    if q1:
-        for i in q1:
-            print(f'Чёрный кадр с {i[0]:.3f} сек. по {i[1]:.3f} сек. (длительность {i[2]:.3f} сек.)')
+# if __name__ == "__main__":
+    # q1 = black_frame_detect_with_multiprocess("C:\\Users\\Maksim\\tv-21-app\\TryYOLO\\input\\Shitfest.mp4")
+    # if q1:
+    #     for i in q1:
+    #         print(f'Чёрный кадр с {i[0]:.3f} сек. по {i[1]:.3f} сек. (длительность {i[2]:.3f} сек.)')

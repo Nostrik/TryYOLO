@@ -5,15 +5,14 @@ import os
 from loguru import logger
 from multiprocessing import Process, Manager
 
-from locale_text import lang_en, lang_ru
+from loader import dictionary
 from core import start_predict, terminal_printer
 from black_finder import black_frame_detect_with_multiprocess
 
-dictionary = lang_en
 min_log_level = ["INFO", "DEBUG"]
 
 logger.remove()
-logger.add(sink=sys.stderr, level=min_log_level[1], format="<blue>{level}</blue> | <green>{function}</green> : <green>{line}</green> | <yellow>{message}</yellow>")
+logger.add(sink=sys.stderr, level=min_log_level[0], format="<blue>{level}</blue> | <green>{function}</green> : <green>{line}</green> | <yellow>{message}</yellow>")
 
 class MyParser(argparse.ArgumentParser):
     def error(self, message):
@@ -136,9 +135,9 @@ def main():
                 p_printer = Process(target=terminal_printer, args=(quantity_processes, info_container))
                 for i_process, i_weigth_file in enumerate(run_parameters['weigths']):
                     logger.debug(video)
-                    if i_weigth_file == "\\black-frame":
+                    if i_weigth_file != "\\black-frame":
                         p = Process(
-                                target=black_frame_detect_with_multiprocess, args=(
+                                target=start_predict, args=(
                                 i_weigth_file,
                                 video,
                                 str(i_weigth_file).replace(target_folder,''),
@@ -152,21 +151,22 @@ def main():
                         )
                         proc_list.append(p)
                         p.start()
-                    p = Process(
-                        target=start_predict, args=(
-                            i_weigth_file, 
-                            video, 
-                            str(i_weigth_file).replace(target_folder,''), 
-                            quene,
-                            quantity_processes,
-                            final_results,
-                            info_container,
-                            i_process,
-                            target_folder,
+                    else:
+                        p = Process(
+                            target=black_frame_detect_with_multiprocess, args=(
+                                i_weigth_file, 
+                                video, 
+                                str(i_weigth_file).replace(target_folder,''), 
+                                quene,
+                                quantity_processes,
+                                final_results,
+                                info_container,
+                                i_process,
+                                target_folder,
+                            )
                         )
-                    )
-                    proc_list.append(p)
-                    p.start()
+                        proc_list.append(p)
+                        p.start()
                 
                 if proc_list:
                     if proc_list[0].is_alive():
@@ -175,7 +175,7 @@ def main():
                     p_printer.join()
             print()
         except FileNotFoundError as er:
-            print("Неверно указаны файлы весов")
+            print(show_minor_phrases(14))
             print(er)
             exit(0)
 
