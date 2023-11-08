@@ -1,37 +1,24 @@
-FROM nvidia/cuda:12.2.0-runtime-ubuntu22.04
+FROM ultralytics/ultralytics:latest
 LABEL maintainer="max"
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
-
-#install python
-RUN apt update
-RUN apt-get install -y python3 python3-pip
 
 #create workdir
 WORKDIR /app
 RUN mkdir files
 
 #install app
-COPY app.py /app/
-COPY worker.py /app/
+COPY vci.py /app/
+COPY core.py /app/
+COPY black_finder.py /app/
+COPY frame_temp.py /app/
 COPY frame2timecode.py /app/
-COPY fndBack.py /app/
-COPY check_torch.py /app/
+COPY loader.py /app/
+COPY messages.py /app/
+COPY models.py /app/
 
-#install requirements
-RUN pip install --upgrade pip
-RUN apt-get update --fix-missing --no-install-recommends
-RUN apt-get install -y --no-install-recommends ffmpeg
-RUN pip install colorama --no-cache-dir
-RUN pip install loguru --no-cache-dir
-RUN pip install ultralytics --no-cache-dir
-RUN pip install torch --no-cache-dir
-# RUN pip install -r requirements.txt --no-cache-dir
+#del temp packets
+RUN rm -rf /var/lib/apt/lists/*
 
-#install pytorch
-RUN pip install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu121
-
-RUN rm -rf /var/lib/apt/lists/* 
-
-ENTRYPOINT [ "python3", "app.py" ]
-# ENTRYPOINT [ "python ", "check_torch.py" ]
+#run
+ENTRYPOINT [ "python3", "vci.py" ]

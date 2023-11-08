@@ -23,10 +23,12 @@ class MyParser(argparse.ArgumentParser):
 
 
 def show_main_phrases(key):
-    print(
-        dictionary['main_phrases'][0] + "\n" 
-        + "=" + dictionary['main_phrases'][key] + "=" + "\n" + dictionary['main_phrases'][0]
-        )
+    # print(
+    #     dictionary['main_phrases'][0] + "\n" 
+    #     + "=" + dictionary['main_phrases'][key] + "=" + "\n" + dictionary['main_phrases'][0]
+    #     )
+    msg = dictionary['main_phrases'][0] + "\n" + "=" + dictionary['main_phrases'][key] + "=" + "\n" + dictionary['main_phrases'][0]
+    print(colored(msg, "cyan"))
 
 
 def show_minor_phrases(key):
@@ -40,6 +42,8 @@ def main():
         "weigths": [],
     }
     show_main_phrases(1)
+
+    # print(colored('CUDA: ', "magenta"))
 
     try:
         weight_files = {}
@@ -113,12 +117,13 @@ def main():
         print(show_minor_phrases(13))
         exit(0)
     
-    msg_for_input = show_minor_phrases(8)
+    msg_for_input = show_minor_phrases(8)  #  Press ENTER to start processing the videos...
     start_detection = input(msg_for_input)
 
     logger.debug(run_parameters)
 
     show_main_phrases(3)
+    print(colored(show_minor_phrases(9), "magenta"))
 
     for video in run_parameters['videos']:
         print(f"\nProcessing for video: {video}")
@@ -144,39 +149,22 @@ def main():
                 p_printer = Process(target=terminal_printer, args=(quantity_processes, info_container))
                 for i_process, i_weigth_file in enumerate(run_parameters['weigths']):
                     logger.debug(video)
-                    if i_weigth_file != "\\black-frame":
-                        p = Process(
-                                target=start_predict, args=(
-                                i_weigth_file,
-                                video,
-                                str(i_weigth_file).replace(target_folder,''),
-                                quene,
-                                quantity_processes,
-                                final_results,
-                                info_container,
-                                i_process,
-                                target_folder,
-                            )
-                        )
-                        proc_list.append(p)
-                        p.start()
-                    else:
-                        p = Process(
-                            target=black_frame_detect_with_multiprocess, args=(
-                                i_weigth_file, 
-                                video, 
-                                str(i_weigth_file).replace(target_folder,''), 
-                                quene,
-                                quantity_processes,
-                                final_results,
-                                info_container,
-                                i_process,
-                                target_folder,
-                            )
-                        )
-                        proc_list.append(p)
-                        p.start()
-                
+                    target_func = start_predict if i_weigth_file != "\\black-frame" else black_frame_detect_with_multiprocess
+                    args = (
+                        i_weigth_file,
+                        video,
+                        str(i_weigth_file).replace(target_folder, ''),
+                        quene,
+                        quantity_processes,
+                        final_results,
+                        info_container,
+                        i_process,
+                        target_folder,
+                    )
+                    p = Process(target=target_func, args=args)
+                    proc_list.append(p)
+                    p.start()
+
                 if proc_list:
                     if proc_list[0].is_alive():
                         p_printer.start()

@@ -1,7 +1,7 @@
 import os
 import time
 import subprocess
-import random
+import keyboard
 from pprint import pprint
 from loguru import logger
 from datetime import datetime
@@ -10,6 +10,9 @@ from termcolor import colored
 
 from models import NeuralNetwork, NWorker, Line
 from frame_temp import current_frame_to_single_frame
+
+
+PROG_ENDED = False
 
 
 class NWorkerYoloV8(NWorker):
@@ -227,7 +230,14 @@ def terminal_printer(quantity_processes, info_container):
             break
         time.sleep(0.2)
         print(cursor_up(quantity_processes + 1))
+        if check_quit():
+            break
 
+
+def check_quit():
+    global PROG_ENDED
+    PROG_ENDED = True
+    return keyboard.is_pressed("q")
 
 
 def start_predict(
@@ -276,10 +286,14 @@ def start_predict(
             try:
                 info_container[process_number] = info_dict
             except Exception as er:
-                print(f"core:line 269:er {er}")
+                # print(f"core:line 269:er {er}")
+                exit(0)
         try:
             queue.put(process_number, info_container)
         except Exception as er:
             print(f"core:line 273:er {er}")
+            exit(0)
+        if check_quit():
+            break
     # yolo_worker.take_output_results()
     yolo_worker.create_result_file(weigth_file, target_video, object_name, target_folder)
