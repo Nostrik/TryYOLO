@@ -4,6 +4,7 @@ import subprocess
 import os
 from loguru import logger
 from multiprocessing import Process, Manager
+from termcolor import colored
 
 from loader import dictionary
 from core import start_predict, terminal_printer
@@ -59,7 +60,9 @@ def main():
     if video_files:
         print(show_minor_phrases(1))
         for i in video_files:
-            print(f"{i+1}:\t{video_files[i].replace(target_folder,'')}")
+            # print(f"{i+1}:\t{video_files[i].replace(target_folder,'')}")
+            msg = f"{i+1}:\t{video_files[i].replace(target_folder,'')}"
+            print(colored(msg, "green"))
     else:
         print(show_minor_phrases(10))
         exit(0)
@@ -76,7 +79,9 @@ def main():
     if weight_files:
         print(show_minor_phrases(3))
         for i in weight_files:
-            print(f"{i+1}:\t{weight_files[i].replace(target_folder,'').replace('.pt','')}")
+            # print(f"{i+1}:\t{weight_files[i].replace(target_folder,'').replace('.pt','')}")
+            msg = f"{i+1}:\t{weight_files[i].replace(target_folder,'').replace('.pt','')}"
+            print(colored(msg, "green"))
     else:
         print(show_minor_phrases(12))
         exit(0)
@@ -91,12 +96,16 @@ def main():
     logger.debug(run_parameters)
     try:
         for i in video_files_choice:
-            print(video_files[int(i) - 1].replace(target_folder,''), end='; ')
+            # print(video_files[int(i) - 1].replace(target_folder,''), end='; ')
+            msg = video_files[int(i) - 1].replace(target_folder,'')
+            print(colored(msg, "green"), end='; ')
             run_parameters['videos'].append(video_files[int(i) - 1])
         print()
         print(show_minor_phrases(7), end='') #  Selected weight files
         for i in weight_files_choice:
-            print(weight_files[int(i) - 1].replace(target_folder,''), end=';\n')
+            # print(weight_files[int(i) - 1].replace(target_folder,''), end=';\n')
+            msg = weight_files[int(i) - 1].replace(target_folder,'')
+            print(colored(msg, "green"), end=';\n')
             run_parameters['weigths'].append(weight_files[int(i) - 1])
         print()
         logger.debug(run_parameters)
@@ -181,6 +190,7 @@ def main():
 
 
     print()
+    show_main_phrases(4)
 
 if __name__ == "__main__":
     main()

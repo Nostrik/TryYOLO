@@ -6,9 +6,9 @@ from pprint import pprint
 from loguru import logger
 from datetime import datetime
 from multiprocessing import Lock
+from termcolor import colored
 
 from models import NeuralNetwork, NWorker, Line
-# from models import for_multiproicessing
 from frame_temp import current_frame_to_single_frame
 
 
@@ -218,7 +218,8 @@ def terminal_printer(quantity_processes, info_container):
             output += f"Object: {info_dict['object']} | Progress: {info_dict['progress']} % | Remaining Time: {info_dict['remaining_time']} | Processing Time: {info_dict['recognized_for']}"
             output += '\n'
             completed_list.append(info_dict['process_completed'])
-        print(output, end='\r')
+        # print(output, end='\r')
+        print(colored(output, "yellow"), end='\r')
         logger.debug(len(sorted_info_container))
         logger.debug(output)
         if all(completed_list):
