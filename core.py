@@ -2,7 +2,6 @@ import os
 import time
 import subprocess
 import keyboard
-from pprint import pprint
 from loguru import logger
 from datetime import datetime
 from multiprocessing import Lock

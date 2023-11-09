@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "vci-v1"
+version = "0.1.0"
+description = "cli program for detection objects with yolo neural network"
+authors = ["Maksim Falev"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+loguru = "^0.7.2"
+termcolor = "^2.3.0"
+keyboard = "^0.13.5"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
