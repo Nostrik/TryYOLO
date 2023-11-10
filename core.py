@@ -1,7 +1,7 @@
 import os
 import time
 import subprocess
-import keyboard
+# import keyboard
 from loguru import logger
 from datetime import datetime
 from multiprocessing import Lock
@@ -229,14 +229,14 @@ def terminal_printer(quantity_processes, info_container):
             break
         time.sleep(0.2)
         print(cursor_up(quantity_processes + 1))
-        if check_quit():
-            break
+        # if check_quit():
+        #     break
 
 
-def check_quit():
-    global PROG_ENDED
-    PROG_ENDED = True
-    return keyboard.is_pressed("q")
+# def check_quit():
+#     global PROG_ENDED
+#     PROG_ENDED = True
+#     return keyboard.is_pressed("q")
 
 
 def start_predict(
@@ -292,7 +292,7 @@ def start_predict(
         except Exception as er:
             print(f"core:line 273:er {er}")
             exit(0)
-        if check_quit():
-            break
+        # if check_quit():
+        #     break
     # yolo_worker.take_output_results()
     yolo_worker.create_result_file(weigth_file, target_video, object_name, target_folder)
