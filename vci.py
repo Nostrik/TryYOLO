@@ -22,10 +22,6 @@ class MyParser(argparse.ArgumentParser):
 
 
 def show_main_phrases(key):
-    # print(
-    #     dictionary['main_phrases'][0] + "\n" 
-    #     + "=" + dictionary['main_phrases'][key] + "=" + "\n" + dictionary['main_phrases'][0]
-    #     )
     msg = dictionary['main_phrases'][0] + "\n" + "=" + dictionary['main_phrases'][key] + "=" + "\n" + dictionary['main_phrases'][0]
     print(colored(msg, "cyan"))
 
@@ -34,7 +30,7 @@ def show_minor_phrases(key):
     return dictionary['minor_phrases'][key]
 
 
-def main():
+def main(args):
 
     run_parameters = {
         "videos": [],
@@ -42,13 +38,14 @@ def main():
     }
     show_main_phrases(1)
 
-    # print(colored('CUDA: ', "magenta"))
-
     try:
         weight_files = {}
         video_files = {}
         msg_for_input = show_minor_phrases(0)
-        target_folder = input(msg_for_input).replace('\r','')
+        target_folder = str(args.p).replace('\r','')
+        print()
+        print(colored(target_folder, "yellow"))
+        target_folder = 'files'
         file_list = [os.path.join(target_folder, f) for f in os.listdir(target_folder) if f.endswith(".pt")]
         file_list.append("\\black-frame")
         video_file_list = [os.path.join(target_folder, f) for f in os.listdir(target_folder) if f.endswith(".mp4")]
@@ -63,7 +60,6 @@ def main():
     if video_files:
         print(show_minor_phrases(1))
         for i in video_files:
-            # print(f"{i+1}:\t{video_files[i].replace(target_folder,'')}")
             msg = f"{i+1}:\t{video_files[i].replace(target_folder,'')}"
             print(colored(msg, "green"))
     else:
@@ -82,7 +78,6 @@ def main():
     if weight_files:
         print(show_minor_phrases(3))
         for i in weight_files:
-            # print(f"{i+1}:\t{weight_files[i].replace(target_folder,'').replace('.pt','')}")
             msg = f"{i+1}:\t{weight_files[i].replace(target_folder,'').replace('.pt','')}"
             print(colored(msg, "green"))
     else:
@@ -99,14 +94,12 @@ def main():
     logger.debug(run_parameters)
     try:
         for i in video_files_choice:
-            # print(video_files[int(i) - 1].replace(target_folder,''), end='; ')
             msg = video_files[int(i) - 1].replace(target_folder,'')
             print(colored(msg, "green"), end='; ')
             run_parameters['videos'].append(video_files[int(i) - 1])
         print()
         print(show_minor_phrases(7), end='') #  Selected weight files
         for i in weight_files_choice:
-            # print(weight_files[int(i) - 1].replace(target_folder,''), end=';\n')
             msg = weight_files[int(i) - 1].replace(target_folder,'')
             print(colored(msg, "green"), end=';\n')
             run_parameters['weigths'].append(weight_files[int(i) - 1])
@@ -180,4 +173,15 @@ def main():
     show_main_phrases(4)
 
 if __name__ == "__main__":
-    main()
+    parser = MyParser(
+    prog='Video-Content-Inspector',
+    description='Консольный интерфейс детектирования проблем на выбранном видеофрагменте',
+    )
+    parser.add_argument('-p', metavar='target_folder', required=False, help='Путь')
+    args = parser.parse_args()
+    if args.p:
+        target_folder = args.p
+        print(target_folder)
+        main(args)
+    else:
+        print(colored("- No args -", "red"))

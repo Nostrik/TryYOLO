@@ -22,12 +22,8 @@ COPY models.py /app/
 
 #requirements
 RUN pip install --upgrade pip "poetry"
-# RUN poetry config virtualenvs.create false --local
-COPY pyproject.toml poetry.lock ./
-# RUN poetry install
 RUN pip install loguru
 RUN pip install termcolor
-# RUN pip install keyboard
 
 #install pytorch
 RUN pip install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu121

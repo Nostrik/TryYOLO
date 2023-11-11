@@ -1,7 +1,6 @@
 import os
 import time
 import subprocess
-# import keyboard
 from loguru import logger
 from datetime import datetime
 from multiprocessing import Lock
@@ -9,9 +8,6 @@ from termcolor import colored
 
 from models import NeuralNetwork, NWorker, Line
 from frame_temp import current_frame_to_single_frame
-
-
-PROG_ENDED = False
 
 
 class NWorkerYoloV8(NWorker):
@@ -220,7 +216,6 @@ def terminal_printer(quantity_processes, info_container):
             output += f"Object: {info_dict['object']} | Progress: {info_dict['progress']} % | Remaining Time: {info_dict['remaining_time']} | Processing Time: {info_dict['recognized_for']}"
             output += '\n'
             completed_list.append(info_dict['process_completed'])
-        # print(output, end='\r')
         print(colored(output, "yellow"), end='\r')
         logger.debug(len(sorted_info_container))
         logger.debug(output)
@@ -229,14 +224,6 @@ def terminal_printer(quantity_processes, info_container):
             break
         time.sleep(0.2)
         print(cursor_up(quantity_processes + 1))
-        # if check_quit():
-        #     break
-
-
-# def check_quit():
-#     global PROG_ENDED
-#     PROG_ENDED = True
-#     return keyboard.is_pressed("q")
 
 
 def start_predict(
@@ -292,7 +279,4 @@ def start_predict(
         except Exception as er:
             print(f"core:line 273:er {er}")
             exit(0)
-        # if check_quit():
-        #     break
-    # yolo_worker.take_output_results()
-    yolo_worker.create_result_file(weigth_file, target_video, object_name, target_folder)
+    yolo_worker.create_result_file(weigth_file, target_video, object_name, current_folder='files')
