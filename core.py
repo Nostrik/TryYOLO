@@ -104,6 +104,7 @@ class NWorkerYoloV8(NWorker):
             print(res)
 
     def create_result_file(self, weigth_file, target_video, object_name, current_folder):
+        time.sleep(1)
         cnt = str(len(self.out_listing))
         txt_file_name = cnt + ' ' + str(object_name).replace('.pt', ' ').replace('\\', '') + str(datetime.now())[:19].replace(' ', ' ').replace(':', '') + ".txt"
         header_name = f"{str(datetime.now())[:19]} | {str(weigth_file).replace('.pt', '')} | {str(target_video).replace('.', '')}"
@@ -279,4 +280,4 @@ def start_predict(
         except Exception as er:
             print(f"core:line 273:er {er}")
             exit(0)
-    yolo_worker.create_result_file(weigth_file, target_video, object_name, current_folder='files')
+    yolo_worker.create_result_file(weigth_file, target_video, object_name, target_folder)

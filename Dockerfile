@@ -21,7 +21,7 @@ COPY messages.py /app/
 COPY models.py /app/
 
 #requirements
-RUN pip install --upgrade pip "poetry"
+RUN pip install --upgrade pip
 RUN pip install loguru
 RUN pip install termcolor
 

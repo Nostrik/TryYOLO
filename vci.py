@@ -47,7 +47,7 @@ def main(args):
         print(colored(target_folder, "yellow"))
         target_folder = 'files'
         file_list = [os.path.join(target_folder, f) for f in os.listdir(target_folder) if f.endswith(".pt")]
-        file_list.append("\\black-frame")
+        file_list.append("black-frame")
         video_file_list = [os.path.join(target_folder, f) for f in os.listdir(target_folder) if f.endswith(".mp4")]
         for i, w in enumerate(file_list):
             weight_files[i] = w
@@ -60,7 +60,7 @@ def main(args):
     if video_files:
         print(show_minor_phrases(1))
         for i in video_files:
-            msg = f"{i+1}:\t{video_files[i].replace(target_folder,'')}"
+            msg = f"{i+1}:\t{video_files[i].replace(target_folder,'').replace('/', '')}"
             print(colored(msg, "green"))
     else:
         print(show_minor_phrases(10))
@@ -78,7 +78,7 @@ def main(args):
     if weight_files:
         print(show_minor_phrases(3))
         for i in weight_files:
-            msg = f"{i+1}:\t{weight_files[i].replace(target_folder,'').replace('.pt','')}"
+            msg = f"{i+1}:\t{weight_files[i].replace(target_folder,'').replace('.pt','').replace('/', '')}"
             print(colored(msg, "green"))
     else:
         print(show_minor_phrases(12))
