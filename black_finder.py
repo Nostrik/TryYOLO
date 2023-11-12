@@ -9,9 +9,9 @@ from loguru import logger
 from loader import dictionary
 from frame2timecode import video_duration
 
-logger.remove()
-min_log_level = ["INFO", "DEBUG"]
-logger.add(sink=sys.stderr, level=min_log_level[1], format="<blue>{level}</blue> | <green>{function}</green> : <green>{line}</green> | <yellow>{message}</yellow>")
+# logger.remove()
+# min_log_level = ["INFO", "DEBUG"]
+# logger.add(sink=sys.stderr, level=min_log_level[1], format="<blue>{level}</blue> | <green>{function}</green> : <green>{line}</green> | <yellow>{message}</yellow>")
 
 
 def test_cuda():
@@ -29,6 +29,9 @@ def create_result_file(data, video_file_name, target_folder, object_name):
     txt_file_name = cnt + ' ' + str(object_name).replace('.pt', ' ').replace('\\', '') + str(datetime.now())[:19].replace(' ', ' ').replace(':', '') + ".txt"
     header_name = f"{str(datetime.now())[:19]} | {str(object_name).replace('.pt', '')} | {str(video_file_name).replace('.', '')}"
     file_path = os.path.join(target_folder, txt_file_name)
+    logger.debug(f'file_name is ({txt_file_name})')
+    logger.debug(f'header_name is ({header_name})')
+    logger.debug(f'target_folder is ({target_folder})')
     with open(file_path, "w+", encoding="utf-8") as txt_file:
         txt_file.write(header_name + "\n")
         for i in data:
@@ -37,6 +40,7 @@ def create_result_file(data, video_file_name, target_folder, object_name):
 
 
 def black_frame_detect_with_multiprocess(weight_file=None, video_path='', object_name=None, queue=None, quantity_processes=None, final_results=None, info_container=None, process_number=0, target_folder=''):
+    logger.debug(f"video_path is ({video_path})")
     command = ['ffmpeg', '-i',  video_path, '-filter_complex', 'blackdetect=d=0.1:pix_th=0.05', '-f', 'null', '-']
 
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)

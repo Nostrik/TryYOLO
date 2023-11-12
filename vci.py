@@ -9,16 +9,19 @@ from loader import dictionary
 from core import start_predict, terminal_printer
 from black_finder import black_frame_detect_with_multiprocess
 
-min_log_level = ["INFO", "DEBUG"]
-
-logger.remove()
-logger.add(sink=sys.stderr, level=min_log_level[0], format="<blue>{level}</blue> | <green>{function}</green> : <green>{line}</green> | <yellow>{message}</yellow>")
 
 class MyParser(argparse.ArgumentParser):
     def error(self, message):
         sys.stderr.write('error: %s\n' % message)
         self.print_help()
         sys.exit(2)
+
+
+def set_logger(value):
+    min_log_level = ["INFO", "DEBUG"]
+    logger.remove()
+    # logger.add(sink=sys.stderr, level=min_log_level[value], format="<blue>{level}</blue> | <green>{function}</green> : <green>{line}</green> | <yellow>{message}</yellow>")
+    logger.add(sink=sys.stderr, level=min_log_level[value], format="<blue>{level}</blue> | <green>{function}</green> : <green>{line}</green> | <white>{message}</white>")
 
 
 def show_main_phrases(key):
@@ -31,6 +34,12 @@ def show_minor_phrases(key):
 
 
 def main(args):
+
+    if args.verbose:
+        set_logger(1)
+        print(colored("-= DEBUG mode is active! =-", "red"))
+    else:
+        set_logger(0)
 
     run_parameters = {
         "videos": [],
@@ -91,7 +100,6 @@ def main(args):
     show_main_phrases(2)
     print(show_minor_phrases(5) + target_folder)
     print(show_minor_phrases(6), end='') #  Order of video files
-    logger.debug(run_parameters)
     try:
         for i in video_files_choice:
             msg = video_files[int(i) - 1].replace(target_folder,'')
@@ -104,7 +112,7 @@ def main(args):
             print(colored(msg, "green"), end=';\n')
             run_parameters['weigths'].append(weight_files[int(i) - 1])
         print()
-        logger.debug(run_parameters)
+        logger.debug(f" run_parameters - ({run_parameters}) prepare processing")
     except KeyError:
         print(show_minor_phrases(13))
         exit(0)
@@ -112,7 +120,7 @@ def main(args):
     msg_for_input = show_minor_phrases(8)  #  Press ENTER to start processing the videos...
     start_detection = input(msg_for_input)
 
-    logger.debug(run_parameters)
+    logger.debug(f" run_parameters - ({run_parameters})")
 
     show_main_phrases(3)
     print(colored(show_minor_phrases(9), "magenta"))
@@ -140,12 +148,12 @@ def main(args):
                 quene = process_manager.Queue()
                 p_printer = Process(target=terminal_printer, args=(quantity_processes, info_container))
                 for i_process, i_weigth_file in enumerate(run_parameters['weigths']):
-                    logger.debug(video)
-                    target_func = start_predict if i_weigth_file != "\\black-frame" else black_frame_detect_with_multiprocess
+                    logger.debug(F"video - ({video})")
+                    target_func = start_predict if i_weigth_file != "black-frame" else black_frame_detect_with_multiprocess
                     args = (
                         i_weigth_file,
                         video,
-                        str(i_weigth_file).replace(target_folder, ''),
+                        str(i_weigth_file).replace(target_folder, '').replace('/', ''),
                         quene,
                         quantity_processes,
                         final_results,
@@ -178,6 +186,7 @@ if __name__ == "__main__":
     description='Консольный интерфейс детектирования проблем на выбранном видеофрагменте',
     )
     parser.add_argument('-p', metavar='target_folder', required=False, help='Путь')
+    parser.add_argument('-v', dest='verbose', action='store_true', required=False, help='Подробно')
     args = parser.parse_args()
     if args.p:
         target_folder = args.p
