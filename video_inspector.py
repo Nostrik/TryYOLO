@@ -1,12 +1,19 @@
 import sys
 import argparse
 import subprocess
+import configparser
 
 class MyParser(argparse.ArgumentParser):
     def error(self, message):
         sys.stderr.write('error: %s\n' % message)
         self.print_help()
         sys.exit(2)
+
+def save_language_config(language):
+    config = configparser.ConfigParser()
+    config['settigns'] = {'language': language}
+    with open('config.ini', 'w') as configfile:
+        config.write(configfile)
 
 def main(args):
     print()
@@ -25,10 +32,31 @@ def main(args):
     "-p",
     f"{path}",
     ]
+    command_without_gpu = [
+    "docker",
+    "run",
+    "-it",
+    "-v",
+    f"{path}:/app/files",
+    "dockworker",
+    "-p",
+    f"{path}",
+    ]
+    if args.lang:
+        save_language_config(args.lang)
+    else:
+        config = configparser.ConfigParser()
+        config.read('config.ini')
+        language = config.get('settings', 'language', fallback='en')
+    if args.no_gpu:
+        exec_command = command_without_gpu
+    else:
+        exec_command = command
     if args.verbose:
-        command.append("-v")
-        print(command)
-    return_code = subprocess.call(command)
+        exec_command.append("-v")
+        print(exec_command)
+    print()
+    # return_code = subprocess.call(exec_command)
     print()
 
 
@@ -38,5 +66,7 @@ if __name__ == "__main__":
     description='Video inspector runner',
     )
     parser.add_argument('-v', dest='verbose', action='store_true', required=False, help='verbose option')
+    parser.add_argument('-n_gpu', dest='no_gpu', action='store_true', required=False, help='no gpu option')
+    parser.add_argument('-lang', choices=["en", "ru"], required=False, help='language(en, ru)')
     args = parser.parse_args()
     main(args)
