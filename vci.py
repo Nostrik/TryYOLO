@@ -5,9 +5,11 @@ from loguru import logger
 from multiprocessing import Process, Manager
 from termcolor import colored
 
-from loader import dictionary
+from messages import lang_en, lang_ru
 from core import start_predict, terminal_printer
 from black_finder import black_frame_detect_with_multiprocess
+
+DICTIONARY = lang_en
 
 
 class MyParser(argparse.ArgumentParser):
@@ -25,15 +27,21 @@ def set_logger(value):
 
 
 def show_main_phrases(key):
-    msg = dictionary['main_phrases'][0] + "\n" + "=" + dictionary['main_phrases'][key] + "=" + "\n" + dictionary['main_phrases'][0]
+    msg = DICTIONARY['main_phrases'][0] + "\n" + "=" + DICTIONARY['main_phrases'][key] + "=" + "\n" + DICTIONARY['main_phrases'][0]
     print(colored(msg, "cyan"))
 
 
 def show_minor_phrases(key):
-    return dictionary['minor_phrases'][key]
+    return DICTIONARY['minor_phrases'][key]
 
 
 def main(args):
+    global DICTIONARY
+
+    if args.lang == 'en':
+        DICTIONARY = lang_en
+    elif args.lang == 'ru':
+        DICTIONARY = lang_ru
 
     if args.verbose:
         set_logger(1)
@@ -185,8 +193,9 @@ if __name__ == "__main__":
     prog='Video-Content-Inspector',
     description='Консольный интерфейс детектирования проблем на выбранном видеофрагменте',
     )
-    parser.add_argument('-p', metavar='target_folder', required=False, help='Путь')
-    parser.add_argument('-v', dest='verbose', action='store_true', required=False, help='Подробно')
+    parser.add_argument('-p', metavar='target_folder', required=False, help='path')
+    parser.add_argument('-v', dest='verbose', action='store_true', required=False, help='verbose')
+    parser.add_argument('-lang', choices=["en", "ru"], required=False, help='language(en, ru)')
     args = parser.parse_args()
     if args.p:
         target_folder = args.p

@@ -11,7 +11,7 @@ class MyParser(argparse.ArgumentParser):
 
 def save_language_config(language):
     config = configparser.ConfigParser()
-    config['settigns'] = {'language': language}
+    config['settings'] = {'language': language}
     with open('config.ini', 'w') as configfile:
         config.write(configfile)
 
@@ -44,10 +44,10 @@ def main(args):
     ]
     if args.lang:
         save_language_config(args.lang)
-    else:
-        config = configparser.ConfigParser()
-        config.read('config.ini')
-        language = config.get('settings', 'language', fallback='en')
+    lang_config = configparser.ConfigParser()
+    lang_config.read('config.ini')
+    language = lang_config.get('settings', 'language')
+    
     if args.no_gpu:
         exec_command = command_without_gpu
     else:
@@ -55,9 +55,8 @@ def main(args):
     if args.verbose:
         exec_command.append("-v")
         print(exec_command)
-    print()
-    # return_code = subprocess.call(exec_command)
-    print()
+    return_code = subprocess.call(exec_command)
+    
 
 
 if __name__ == "__main__":
