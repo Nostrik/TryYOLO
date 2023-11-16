@@ -115,13 +115,6 @@ class NWorkerYoloV8(NWorker):
         logger.debug(f'file_name is ({txt_file_name})')
         logger.debug(f'header_name is ({header_name})')
         logger.debug(f'current_folder is ({current_folder})')
-        # if 'black' in header_name:
-        #     file_path = os.path.join(current_folder, txt_file_name)
-        #     with open(file_path, "w+", encoding="utf-8") as txt_file:
-        #         txt_file.write(header_name + "\n")
-        #         for i in self.out_listing:
-        #             txt_file.write(f'Чёрный кадр с {i[0]:.3f} сек. по {i[1]:.3f} сек. (длительность {i[2]:.3f} сек.)\n')
-        # else:
         count_srtings = 0
         with open(os.path.join(current_folder, txt_file_name), "w+", encoding="utf-8") as txt_file:
             txt_file.write(header_name + "\n")

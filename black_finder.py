@@ -1,6 +1,5 @@
 import subprocess
 import re
-import sys
 import os
 from datetime import datetime
 from multiprocessing import Lock
@@ -8,10 +7,6 @@ from loguru import logger
 
 from loader import dictionary
 from frame2timecode import video_duration
-
-# logger.remove()
-# min_log_level = ["INFO", "DEBUG"]
-# logger.add(sink=sys.stderr, level=min_log_level[1], format="<blue>{level}</blue> | <green>{function}</green> : <green>{line}</green> | <yellow>{message}</yellow>")
 
 
 def test_cuda():
@@ -102,10 +97,3 @@ def black_frame_detect_with_multiprocess(weight_file=None, video_path='', object
         except Exception:
             pass
     create_result_file(data=bf, video_file_name=video_path, target_folder=target_folder, object_name='black-frame')
-
-
-# if __name__ == "__main__":
-    # q1 = black_frame_detect_with_multiprocess("C:\\Users\\Maksim\\tv-21-app\\TryYOLO\\input\\Shitfest.mp4")
-    # if q1:
-    #     for i in q1:
-    #         print(f'Чёрный кадр с {i[0]:.3f} сек. по {i[1]:.3f} сек. (длительность {i[2]:.3f} сек.)')

@@ -27,11 +27,13 @@ def set_logger(value):
 
 
 def show_main_phrases(key):
+    global DICTIONARY
     msg = DICTIONARY['main_phrases'][0] + "\n" + "=" + DICTIONARY['main_phrases'][key] + "=" + "\n" + DICTIONARY['main_phrases'][0]
     print(colored(msg, "cyan"))
 
 
 def show_minor_phrases(key):
+    global DICTIONARY
     return DICTIONARY['minor_phrases'][key]
 
 
