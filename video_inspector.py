@@ -6,13 +6,6 @@ import configparser
 config = configparser.ConfigParser()
 
 
-class MyParser(argparse.ArgumentParser):
-    def error(self, message):
-        sys.stderr.write('error: %s\n' % message)
-        self.print_help()
-        sys.exit(2)
-
-
 def save_language_config(language):
     config['settings'] = {'language': language}
     with open('config.ini', 'w') as configfile:
@@ -43,8 +36,8 @@ def execute_command(command, verbose):
 
 
 def main(args):
-    path = 'C:\\Users\\Maxim\\tv-21-app\\my-tv21-app\\input'
-    # path  = input('path: ').replace('\r','')
+    # path = 'C:\\Users\\Maxim\\tv-21-app\\my-tv21-app\\input'
+    path  = input('path: ').replace('\r','')
     if args.lang:
         save_language_config(args.lang)
     try:
