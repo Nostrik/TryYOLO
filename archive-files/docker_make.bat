@@ -7,3 +7,7 @@ docker image rm cli-util-dockworker
 docker-compose run --service-ports vci
 
 docker run -it -v C:\Users\Maxim\tv-21-app\my-tv21-app\input:/app/files --gpus all dockworker
+
+docker save -o dockworker.tar dockworker
+
+docker load -i dockworker.tar
