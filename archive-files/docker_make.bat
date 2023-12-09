@@ -4,6 +4,7 @@ docker container run -i -t -v .\input:/app/files -v .\output:/app/runs/detect/pr
 
 docker image rm cli-util-dockworker
 
+
 docker-compose run --service-ports vci
 
 docker run -it -v C:\Users\Maxim\tv-21-app\my-tv21-app\input:/app/files --gpus all dockworker
