@@ -278,4 +278,4 @@ def start_predict(
             print(f"core:line 273:er {er}")
             exit(0)
     yolo_worker.create_result_file(weigth_file, target_video, object_name, target_folder)
-    pause = input()
+    # pause = input()
