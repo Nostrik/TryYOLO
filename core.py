@@ -143,7 +143,7 @@ class YoloNeuralNetwork(NeuralNetwork):
         PopenPars = [
             "yolo", "predict", f"model={self.model}", f"source={self.video}",
             ]
-        return subprocess.Popen(PopenPars, stderr=subprocess.PIPE)
+        return subprocess.Popen(PopenPars, stdout=subprocess.PIPE)
 
     def get_model(self):
         summary = f"{self.model}"
@@ -278,3 +278,4 @@ def start_predict(
             print(f"core:line 273:er {er}")
             exit(0)
     yolo_worker.create_result_file(weigth_file, target_video, object_name, target_folder)
+    pause = input()
