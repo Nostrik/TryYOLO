@@ -1,10 +1,12 @@
 import os
 import time
 import subprocess
+import shutil
 from loguru import logger
 from datetime import datetime
 from multiprocessing import Lock
 from termcolor import colored
+from functools import reduce
 
 from models import NeuralNetwork, NWorker, Line
 from frame_temp import current_frame_to_single_frame
@@ -106,8 +108,22 @@ class NWorkerYoloV8(NWorker):
     def create_result_file(self, weigth_file, target_video, object_name, current_folder):
         time.sleep(1)
         cnt = str(len(self.out_listing))
-        txt_file_name = cnt + ' ' + str(object_name).replace('.pt', ' ').replace('\\', '') + str(datetime.now())[:19].replace(' ', ' ').replace(':', '') + ".txt"
-        header_name = f"{str(datetime.now())[:19]} | {str(weigth_file).replace('.pt', '')} | {str(target_video).replace('.', '')}"
+        # txt_file_name = cnt + ' ' + str(object_name).replace('.pt', ' ').replace('\\', '') + str(datetime.now())[:19].replace(' ', ' ').replace(':', '') + ".txt"
+        optimized_object_name = reduce(lambda x, char: x.replace(char, ''), [
+            '.pt', '\\',
+        ], str(object_name))
+        optimized_datetime = reduce(lambda x, char: x.replace(char, ''), [
+            ' ', ':',
+        ], str(datetime.now())[:19])
+        txt_file_name = cnt + ' ' + optimized_object_name + optimized_datetime + ".txt"
+        # header_name = f"{str(datetime.now())[:19]} | {str(weigth_file).replace('.pt', '').replace('files', '').replace('/', '')} | {str(target_video).replace('.', '').replace('files', '').replace('/', '')}"
+        optimized_weight_file = reduce(lambda x, char: x.replace(char, ''), [
+            '.pt', 'files', '/',
+        ], str(weigth_file))
+        optimized_target_video = reduce(lambda x, char: x.replace(char, ''), [
+            '.', 'files', '/',
+        ], str(target_video))
+        header_name = f"{str(datetime.now())[:19]} | {optimized_weight_file} | {optimized_target_video}"
         target_folder = os.path.join(
             os.path.dirname(weigth_file),
             os.path.dirname(target_video)
@@ -121,7 +137,18 @@ class NWorkerYoloV8(NWorker):
             for v in self.out_listing:
                 txt_file.write(f"{v[0]}, [{v[1][0]} sec | {v[1][1]} min | {v[1][2]} hour | {v[1][3]} frame ({v[1][4]})]\n")
                 count_srtings += 1
-            txt_file.write(f"cnt: {count_srtings}")    
+            txt_file.write(f"cnt: {count_srtings}")
+        return txt_file_name
+
+    def copy_result_folder(self, new_folder_name):
+        folder_name = new_folder_name.replace('.txt', '').replace(' ', '_')
+        source_folder = "/usr/src/ultralytics/runs/detect/predict"
+        destination_folder = f"/app/files/{folder_name}"
+        try:
+            shutil.copytree(source_folder, destination_folder)
+        except Exception as ex:
+            print(ex)
+
 
 
 class YoloNeuralNetwork(NeuralNetwork):
@@ -143,7 +170,7 @@ class YoloNeuralNetwork(NeuralNetwork):
         PopenPars = [
             "yolo", "predict", f"model={self.model}", f"source={self.video}",
             ]
-        return subprocess.Popen(PopenPars, stdout=subprocess.PIPE)
+        return subprocess.Popen(PopenPars, stderr=subprocess.PIPE)
 
     def get_model(self):
         summary = f"{self.model}"
@@ -277,5 +304,6 @@ def start_predict(
         except Exception as er:
             print(f"core:line 273:er {er}")
             exit(0)
-    yolo_worker.create_result_file(weigth_file, target_video, object_name, target_folder)
-    # pause = input()
+    resutl_name = yolo_worker.create_result_file(weigth_file, target_video, object_name, target_folder)
+    yolo_worker.copy_result_folder(resutl_name)
+    time.sleep(600)

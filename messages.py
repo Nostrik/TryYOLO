@@ -24,6 +24,7 @@ lang_en = {
         12: "\n" + "No weight files found!.." + "\n",
         13: "\n" + "incorrect input!.." + "\n",
         14: "Incorrect weight files specified",
+        15: "\nProcessing for video",
 
         15: "Black frame",
         16: "sec",
@@ -64,6 +65,7 @@ lang_ru = {
         12: "\n" + "Файлы веса не найдены!.." + "\n",
         13: "\n" + "неправильный ввод!.." + "\n",
         14: "Неверно указаны файлы весов",
+        15: "\nОбработка видео",
 
         15: "Чёрный кадр с",
         16: "сек",

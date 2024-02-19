@@ -8,6 +8,7 @@ from termcolor import colored
 from messages import lang_en, lang_ru
 from core import start_predict, terminal_printer
 from black_finder import black_frame_detect_with_multiprocess
+from functools import reduce
 
 DICTIONARY = lang_en
 
@@ -62,6 +63,7 @@ def main(args):
         video_files = {}
         msg_for_input = show_minor_phrases(0)
         target_folder = str(args.p).replace('\r','')
+        target_folder_for_visual = target_folder
         print()
         print(colored(target_folder, "yellow"))
         target_folder = 'files'
@@ -79,7 +81,10 @@ def main(args):
     if video_files:
         print(show_minor_phrases(1))
         for i in video_files:
-            msg = f"{i+1}:\t{video_files[i].replace(target_folder,'').replace('/', '')}"
+            # msg = f"{i+1}:\t{video_files[i].replace(target_folder,'').replace('/', '')}"
+            msg = reduce(lambda x, char: x.replace(char, ''), [
+                target_folder, '/',
+            ], f"{i+1}:\t{video_files[i]}")
             print(colored(msg, "green"))
     else:
         print(show_minor_phrases(10))
@@ -97,7 +102,10 @@ def main(args):
     if weight_files:
         print(show_minor_phrases(3))
         for i in weight_files:
-            msg = f"{i+1}:\t{weight_files[i].replace(target_folder,'').replace('.pt','').replace('/', '')}"
+            # msg = f"{i+1}:\t{weight_files[i].replace(target_folder,'').replace('.pt','').replace('/', '')}"
+            msg = reduce(lambda x, char: x.replace(char, ''), [
+                target_folder, '.pt', '/',
+            ], f"{i+1}:\t{weight_files[i]}")
             print(colored(msg, "green"))
     else:
         print(show_minor_phrases(12))
@@ -108,17 +116,24 @@ def main(args):
     weight_files_choice = weight_files_input.split(',')
     print()
     show_main_phrases(2)
-    print(show_minor_phrases(5) + target_folder)
+    print(show_minor_phrases(5), end='') #  Path:
+    print(colored(target_folder_for_visual, "yellow"))
     print(show_minor_phrases(6), end='') #  Order of video files
     try:
         for i in video_files_choice:
-            msg = video_files[int(i) - 1].replace(target_folder,'')
+            msg = video_files[int(i) - 1].replace(target_folder,'').replace('/', '')
+            # msg = reduce(lambda x, char: x.replace(char, ''), [
+            #     target_folder, '/'    
+            # ], video_files[int(i) - 1])
             print(colored(msg, "green"), end='; ')
             run_parameters['videos'].append(video_files[int(i) - 1])
         print()
         print(show_minor_phrases(7), end='') #  Selected weight files
         for i in weight_files_choice:
-            msg = weight_files[int(i) - 1].replace(target_folder,'')
+            msg = weight_files[int(i) - 1].replace(target_folder,'').replace('/', '')
+            # msg = reduce(lambda x, char: x.replace(char, ''), [
+            #     target_folder, '/'    
+            # ], video_files[int(i) - 1])
             print(colored(msg, "green"), end=';\n')
             run_parameters['weigths'].append(weight_files[int(i) - 1])
         print()
@@ -137,6 +152,9 @@ def main(args):
 
     for video in run_parameters['videos']:
         print(f"\nProcessing for video: {video}")
+        # print(show_minor_phrases(15), end='') #  Processing for video
+        # msg = str(video).replace('files', '').replace('/', '')
+        # print(msg)
         try:
             with Manager() as process_manager:
                 quantity_processes = len(run_parameters['weigths'])
