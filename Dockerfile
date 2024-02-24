@@ -1,4 +1,4 @@
-FROM ultralytics/ultralytics:8.0.210
+FROM ultralytics/ultralytics:8.1.17
 LABEL maintainer="max"
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1

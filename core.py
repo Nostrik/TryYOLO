@@ -2,7 +2,7 @@ import os
 import time
 import subprocess
 import shutil
-from loguru import logger
+# from loguru import logger
 from datetime import datetime
 from multiprocessing import Lock
 from termcolor import colored
@@ -105,10 +105,28 @@ class NWorkerYoloV8(NWorker):
         for res in results:
             print(res)
 
-    def create_result_file(self, weigth_file, target_video, object_name, current_folder):
-        time.sleep(1)
+    def get_result_name(self, weigth_file, target_video, object_name, current_folder):
         cnt = str(len(self.out_listing))
-        # txt_file_name = cnt + ' ' + str(object_name).replace('.pt', ' ').replace('\\', '') + str(datetime.now())[:19].replace(' ', ' ').replace(':', '') + ".txt"
+        optimized_object_name = reduce(lambda x, char: x.replace(char, ''), [
+            '.pt', '\\',
+        ], str(object_name))
+        optimized_datetime = reduce(lambda x, char: x.replace(char, ''), [
+            ' ', ':',
+        ], str(datetime.now())[:19])
+        optimized_target_video = reduce(lambda x, char: x.replace(char, ''), [
+            '.', 'files', '/',
+        ], str(target_video))
+        optimized_weight_file = reduce(lambda x, char: x.replace(char, ''), [
+            '.pt', 'files', '/',
+        ], str(weigth_file))
+        result_name = cnt + '_' + optimized_object_name + '_' + optimized_target_video
+        header_name = f"{str(datetime.now())[:19]} | {optimized_weight_file} | {optimized_target_video}"
+        return result_name, header_name
+
+    def create_result_file(self, weigth_file, target_video, object_name, current_folder, result_name):
+        time.sleep(1)
+
+        cnt = str(len(self.out_listing))
         optimized_object_name = reduce(lambda x, char: x.replace(char, ''), [
             '.pt', '\\',
         ], str(object_name))
@@ -116,7 +134,7 @@ class NWorkerYoloV8(NWorker):
             ' ', ':',
         ], str(datetime.now())[:19])
         txt_file_name = cnt + ' ' + optimized_object_name + optimized_datetime + ".txt"
-        # header_name = f"{str(datetime.now())[:19]} | {str(weigth_file).replace('.pt', '').replace('files', '').replace('/', '')} | {str(target_video).replace('.', '').replace('files', '').replace('/', '')}"
+
         optimized_weight_file = reduce(lambda x, char: x.replace(char, ''), [
             '.pt', 'files', '/',
         ], str(weigth_file))
@@ -124,13 +142,13 @@ class NWorkerYoloV8(NWorker):
             '.', 'files', '/',
         ], str(target_video))
         header_name = f"{str(datetime.now())[:19]} | {optimized_weight_file} | {optimized_target_video}"
-        target_folder = os.path.join(
-            os.path.dirname(weigth_file),
-            os.path.dirname(target_video)
-        )
-        logger.debug(f'file_name is ({txt_file_name})')
-        logger.debug(f'header_name is ({header_name})')
-        logger.debug(f'current_folder is ({current_folder})')
+        # target_folder = os.path.join(
+        #     os.path.dirname(weigth_file),
+        #     os.path.dirname(target_video)
+        # )
+        # logger.debug(f'file_name is ({txt_file_name})')
+        # logger.debug(f'header_name is ({header_name})')
+        # logger.debug(f'current_folder is ({current_folder})')
         count_srtings = 0
         with open(os.path.join(current_folder, txt_file_name), "w+", encoding="utf-8") as txt_file:
             txt_file.write(header_name + "\n")
@@ -138,7 +156,19 @@ class NWorkerYoloV8(NWorker):
                 txt_file.write(f"{v[0]}, [{v[1][0]} sec | {v[1][1]} min | {v[1][2]} hour | {v[1][3]} frame ({v[1][4]})]\n")
                 count_srtings += 1
             txt_file.write(f"cnt: {count_srtings}")
-        return txt_file_name
+
+    def create_result_file2(self, name, header, folder_path):
+        time.sleep(1)
+
+        cnt = str(len(self.out_listing))
+        txt_file_name = name + ".txt"
+        count_srtings = 0
+        with open(os.path.join(folder_path, txt_file_name), "w+", encoding="utf-8") as txt_file:
+            txt_file.write(header + "\n")
+            for v in self.out_listing:
+                txt_file.write(f"{v[0]}, [{v[1][0]} sec | {v[1][1]} min | {v[1][2]} hour | {v[1][3]} frame ({v[1][4]})]\n")
+                count_srtings += 1
+            txt_file.write(f"cnt: {count_srtings}")
 
     def copy_result_folder(self, new_folder_name):
         folder_name = new_folder_name.replace('.txt', '').replace(' ', '_')
@@ -148,6 +178,7 @@ class NWorkerYoloV8(NWorker):
             shutil.copytree(source_folder, destination_folder)
         except Exception as ex:
             print(ex)
+        return destination_folder
 
 
 
@@ -170,7 +201,7 @@ class YoloNeuralNetwork(NeuralNetwork):
         PopenPars = [
             "yolo", "predict", f"model={self.model}", f"source={self.video}",
             ]
-        return subprocess.Popen(PopenPars, stderr=subprocess.PIPE)
+        return subprocess.Popen(PopenPars, stdout=subprocess.PIPE)
 
     def get_model(self):
         summary = f"{self.model}"
@@ -235,14 +266,14 @@ def terminal_printer(quantity_processes, info_container):
         output = ""
         completed_list = []
         sorted_info_container = sorted(info_container, key=lambda x: x["process"])
-        logger.debug(f"sorted_info_container - ({sorted_info_container})")
+        # logger.debug(f"sorted_info_container - ({sorted_info_container})")
         for info_dict in sorted_info_container:
             output += f"Object: {info_dict['object']} | Progress: {info_dict['progress']} % | Remaining Time: {info_dict['remaining_time']} | Processing Time: {info_dict['recognized_for']}"
             output += '\n'
             completed_list.append(info_dict['process_completed'])
         print(colored(output, "yellow"), end='\r')
-        logger.debug(f"len of info_container - {len(sorted_info_container)}")
-        logger.debug(f"output - ({output})")
+        # logger.debug(f"len of info_container - {len(sorted_info_container)}")
+        # logger.debug(f"output - ({output})")
         if all(completed_list):
             continue_output = False
             break
@@ -253,8 +284,8 @@ def terminal_printer(quantity_processes, info_container):
 def start_predict(
         weigth_file, target_video, object_name, queue=None, quantity_processes=None, final_results=None, info_container=None, process_number=0, target_folder=''
         ):
-    logger.debug(f"weigth_file - ({weigth_file})")
-    logger.debug(f"target_video - ({target_video})")
+    # logger.debug(f"weigth_file - ({weigth_file})")
+    # logger.debug(f"target_video - ({target_video})")
     process_lock = Lock()
     info_dict = {
         "process": process_number,
@@ -281,7 +312,7 @@ def start_predict(
     process_cont = True
     while process_cont:
 
-        output = process.stderr.readline().decode('utf-8')
+        output = process.stdout.readline().decode('utf-8')
         yolo_line.update_values(output.strip())
         yolo_worker.catch_find_objects(all=False)
         progress = yolo_worker.show_progress_results()
@@ -304,6 +335,8 @@ def start_predict(
         except Exception as er:
             print(f"core:line 273:er {er}")
             exit(0)
-    resutl_name = yolo_worker.create_result_file(weigth_file, target_video, object_name, target_folder)
-    yolo_worker.copy_result_folder(resutl_name)
-    time.sleep(600)
+
+    # resutl_name = yolo_worker.create_result_file(weigth_file, target_video, object_name, target_folder)
+    result_name, header_name = yolo_worker.get_result_name(weigth_file, target_video, object_name, target_folder)
+    result_folder_path = yolo_worker.copy_result_folder(result_name)
+    yolo_worker.create_result_file2(result_name,header_name, result_folder_path)

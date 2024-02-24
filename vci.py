@@ -66,7 +66,7 @@ def main(args):
         target_folder_for_visual = target_folder
         print()
         print(colored(target_folder, "yellow"))
-        target_folder = 'files'
+        target_folder = 'files' # with docker or without docker
         file_list = [os.path.join(target_folder, f) for f in os.listdir(target_folder) if f.endswith(".pt")]
         file_list.append("black-frame")
         video_file_list = [os.path.join(target_folder, f) for f in os.listdir(target_folder) if f.endswith(".mp4")]
@@ -151,8 +151,11 @@ def main(args):
     print(colored(show_minor_phrases(9), "magenta"))
 
     for video in run_parameters['videos']:
-        print(f"\nProcessing for video: {video}")
-        # print(show_minor_phrases(15), end='') #  Processing for video
+        msg = str(video).replace('files', '').replace('/', '')
+        pre_msg = show_minor_phrases(18)
+        # print(f"\nProcessing for video: {msg}")
+        print(pre_msg, end=' ') #  Processing for video
+        print(colored(msg, "green"))
         # msg = str(video).replace('files', '').replace('/', '')
         # print(msg)
         try:
