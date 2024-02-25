@@ -19,6 +19,7 @@ COPY frame2timecode.py /app/
 COPY loader.py /app/
 COPY messages.py /app/
 COPY models.py /app/
+COPY check_torch.py /app/
 
 #requirements
 RUN pip install --upgrade pip
