@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import subprocess
 import shutil
@@ -340,3 +341,7 @@ def start_predict(
     result_name, header_name = yolo_worker.get_result_name(weigth_file, target_video, object_name, target_folder)
     result_folder_path = yolo_worker.copy_result_folder(result_name)
     yolo_worker.create_result_file2(result_name,header_name, result_folder_path)
+
+    # while True:
+    #     output = process.stdout.readline().decode('utf-8')
+    #     sys.stdout.write(output)
